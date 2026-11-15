@@ -1,11 +1,13 @@
-// Outfits for the cast (rural Bihar, 1960-82)
-export const MANJHI_Y = { top: "#e9dfc7", short: true, dhoti: "#f3eee2", pagri: "#c9452f", skin: "#b97d52", beard: "#2b201b", beardSize: 0.8, moustache: "#2b201b", barefoot: true };
-export const MANJHI_M = { ...MANJHI_Y, beard: "#8d857c", beardSize: 1.1, moustache: "#8d857c", top: "#e2d6bc" };
-export const MANJHI_O = { ...MANJHI_Y, beard: "#f2f0ea", beardSize: 1.5, moustache: "#f2f0ea", hairWhite: "#f2f0ea", skin: "#ab7048", top: "#dccfb4", dhoti: "#ece5d4", pagri: "#b7402e" };
-export const FALGUNI = { sari: "#d8572e", border: "#efc13c", top: "#8a3460", skin: "#c3875a", hairCol: "#221816", barefoot: true };
-export const VIL_1 = { top: "#3f6fb5", kurta: true, dhoti: "#efe8d8", pagri: "#e0b84a", skin: "#c58c5e", moustache: "#2a1f1a", barefoot: true };
-export const VIL_2 = { sari: "#3f8f5a", border: "#e8608a", top: "#e0b84a", skin: "#b8794c", hairCol: "#1e1614", barefoot: true };
-export const VIL_3 = { top: "#b5653f", kurta: true, dhoti: "#efe8d8", pagri: "#f0ead9", skin: "#a86d44", moustache: "#ece8df", beard: "#ece8df", beardSize: 0.6, barefoot: true };
-export const KID = { build: "kid", top: "#f08a2c", short: true, shorts: "#3b5b9a", hair: "#1f1715", skin: "#c08454", barefoot: true };
-export const VIL_4 = { top: "#7b5ac9", kurta: true, dhoti: "#efe8d8", hair: "#231a17", skin: "#b0744a", moustache: "#231a17", barefoot: true };
-export const VIL_5 = { sari: "#c03a5a", border: "#f1c94a", top: "#3f6fb5", skin: "#c99062", hairCol: "#1e1614", barefoot: true };
+// Outfits for "The Thief Who Returned Everything". The outfit IS the body: one flat colour blob + a few marks.
+export const THIEF = { col: "#3b3550", shape: "bell", long: 60, w: 0.92, hood: "#2b2640", mask: "#17151f", cape: "#2b2640", satchel: "#8a5a34", belt: "#5a5470" };
+export const THIEF_SHOP = { col: "#4f7a8c", shape: "oval", apron: "#b9793f", hair: "#3a2a22", tuft: true };
+export const CAPTAIN = { col: "#2f5fa8", shape: "rect", w: 0.98, hat: "helmet", hatCol: "#d9a93a", belt: "#e9d9a8", buttons: "#f0cf6a", moustache: "#2a2230", badge: "#f0cf6a" };
+export const GUARD = { col: "#3a6fb5", shape: "oval", hat: "helmet", hatCol: "#c9a23a", belt: "#e9d9a8" };
+export const MAYOR = { col: "#7a3b78", shape: "rect", build: "stout", w: 1.12, chain: "#f0c540", lapel: "#5c2a5b", hat: "tophat", hatCol: "#2e2a36", moustache: "#e9e4f2" };
+export const MAYOR_NIGHT = { col: "#cfd9ee", shape: "bell", build: "stout", w: 1.02, long: 110, hat: "nightcap", hatCol: "#b9473a", moustache: "#e9e4f2", buttons: "#8a94b0" };
+export const BAKER = { col: "#f1ead8", shape: "oval", build: "stout", w: 1.1, apron: "#ffffff", hat: "toque", belt: "#d9cfb8" };
+export const WOMAN = { col: "#3f9a63", shape: "bell", hairLong: "#5a3524", hem: "#e9c15a" };
+export const WOMAN2 = { col: "#d9663c", shape: "bell", bun: "#2a2230", sash: "#f0d9a0" };
+export const KID = { col: "#e8a22c", shape: "oval", build: "kid", hat: "cap", hatCol: "#c8452f" };
+export const SLEEPER = { col: "#e4dccb", shape: "bell", long: 96, hat: "nightcap", hatCol: "#4f8fb3" };
+export const OLDMAN = { col: "#8a6a4a", shape: "rect", hat: "scarf", hatCol: "#6a8a5a", moustache: "#e9e4f2" };

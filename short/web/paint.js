@@ -190,3 +190,33 @@ export const cloudCanvas = (seed = 1) => {
   for (const [x, y, rad] of blobs) { g.beginPath(); g.ellipse(x, y, rad * 0.94, rad * 0.74, 0, 0, Math.PI * 2); g.fill(); }
   return c;
 };
+
+/** cobblestones: rounded grey-beige stones with dark seams */
+export const cobbleTex = (seed = 3, S = 1024) => {
+  const c = cv(S, S), g = c.getContext("2d"), r = rng(seed);
+  g.fillStyle = "#4d4650"; g.fillRect(0, 0, S, S);
+  const rows = 12, rh = S / rows;
+  for (let j = 0; j < rows; j++) {
+    let x = -(r() * 60);
+    while (x < S) {
+      const w = 60 + r() * 60, col = ["#a89f98", "#b8ada0", "#958c8c", "#c2b6a6", "#8d8590", "#b1a595"][(r() * 6) | 0];
+      const y = j * rh + 5, h = rh - 10, rad = 16 + r() * 8;
+      for (const dx of [0, S]) {
+        g.fillStyle = col; g.beginPath(); g.roundRect(x + 5 - dx + (x + w > S ? 0 : dx), y, w - 10, h, rad); g.fill();
+        g.fillStyle = "rgba(255,255,255,0.10)"; g.beginPath(); g.roundRect(x + 11 - dx + (x + w > S ? 0 : dx), y + 5, w - 30, h * 0.3, 8); g.fill();
+      }
+      x += w;
+    }
+  }
+  return c;
+};
+/** shop sign: cream board, dark frame, hand-lettered text */
+export const signCanvas = (l1, l2) => {
+  const c = cv(1024, 320), g = c.getContext("2d");
+  g.fillStyle = "#3a2618"; g.fillRect(0, 0, 1024, 320);
+  g.fillStyle = "#f1e3bd"; g.beginPath(); g.roundRect(16, 16, 992, 288, 22); g.fill();
+  g.fillStyle = "#2a1f2e"; g.textAlign = "center"; g.textBaseline = "middle";
+  g.font = "900 150px 'Comic Sans MS', 'Chalkboard SE', 'DejaVu Sans', sans-serif"; g.fillText(l1, 512, 128);
+  g.fillStyle = "#b9473a"; g.font = "700 64px 'Comic Sans MS', 'DejaVu Sans', sans-serif"; g.fillText(l2, 512, 250);
+  return c;
+};

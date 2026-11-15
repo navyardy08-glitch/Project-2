@@ -1,4 +1,12 @@
 node_modules
 short/frames/
-short/work/
 __pycache__/
+short/stills/a/
+short/stills/b/
+short/stills/c/
+short/stills/d/
+short/stills/e/
+short/stills/f/
+short/stills/check/
+short/work/*.log
+*.wav

@@ -1,0 +1,420 @@
+[
+ {
+  "text": "The greatest thief in the city was finally caught.",
+  "start": 0.09,
+  "end": 2.97,
+  "f0": 3,
+  "f1": 89,
+  "segments": [
+   0,
+   1
+  ]
+ },
+ {
+  "text": "He was putting things back.",
+  "start": 3.43,
+  "end": 4.8,
+  "f0": 103,
+  "f1": 144,
+  "segments": [
+   1,
+   2
+  ]
+ },
+ {
+  "text": "They say it happened in a crooked little town of chimneys and cobblestones.",
+  "start": 5.37,
+  "end": 9.56,
+  "f0": 161,
+  "f1": 287,
+  "segments": [
+   2,
+   3
+  ]
+ },
+ {
+  "text": "Every night,",
+  "start": 10.14,
+  "end": 11.004,
+  "f0": 304,
+  "f1": 330,
+  "segments": [
+   3,
+   4
+  ]
+ },
+ {
+  "text": "something went missing.",
+  "start": 11.004,
+  "end": 12.3,
+  "f0": 330,
+  "f1": 369,
+  "segments": [
+   3,
+   4
+  ]
+ },
+ {
+  "text": "A clock.",
+  "start": 12.8,
+  "end": 13.43,
+  "f0": 384,
+  "f1": 403,
+  "segments": [
+   4,
+   5
+  ]
+ },
+ {
+  "text": "A kettle.",
+  "start": 13.72,
+  "end": 14.25,
+  "f0": 412,
+  "f1": 428,
+  "segments": [
+   5,
+   6
+  ]
+ },
+ {
+  "text": "A child's music box.",
+  "start": 14.64,
+  "end": 16.09,
+  "f0": 439,
+  "f1": 483,
+  "segments": [
+   6,
+   7
+  ]
+ },
+ {
+  "text": "The mayor lost his favourite chair.",
+  "start": 16.58,
+  "end": 18.63,
+  "f0": 497,
+  "f1": 559,
+  "segments": [
+   7,
+   8
+  ]
+ },
+ {
+  "text": "People bolted their doors.",
+  "start": 19.13,
+  "end": 20.67,
+  "f0": 574,
+  "f1": 620,
+  "segments": [
+   8,
+   9
+  ]
+ },
+ {
+  "text": "They nailed their windows shut.",
+  "start": 20.98,
+  "end": 22.38,
+  "f0": 629,
+  "f1": 671,
+  "segments": [
+   9,
+   10
+  ]
+ },
+ {
+  "text": "One man slept inside his own cupboard.",
+  "start": 22.82,
+  "end": 25.04,
+  "f0": 685,
+  "f1": 751,
+  "segments": [
+   10,
+   11
+  ]
+ },
+ {
+  "text": "The guards chased shadows across the rooftops for a whole year.",
+  "start": 25.54,
+  "end": 29.3,
+  "f0": 766,
+  "f1": 879,
+  "segments": [
+   11,
+   12
+  ]
+ },
+ {
+  "text": "But then people noticed something strange.",
+  "start": 29.86,
+  "end": 32.41,
+  "f0": 896,
+  "f1": 972,
+  "segments": [
+   12,
+   13
+  ]
+ },
+ {
+  "text": "Everything came back.",
+  "start": 32.93,
+  "end": 34.27,
+  "f0": 988,
+  "f1": 1028,
+  "segments": [
+   13,
+   14
+  ]
+ },
+ {
+  "text": "The clock came back ticking.",
+  "start": 34.76,
+  "end": 36.18,
+  "f0": 1043,
+  "f1": 1085,
+  "segments": [
+   14,
+   15
+  ]
+ },
+ {
+  "text": "The kettle came back whistling.",
+  "start": 36.57,
+  "end": 38.24,
+  "f0": 1097,
+  "f1": 1147,
+  "segments": [
+   15,
+   16
+  ]
+ },
+ {
+  "text": "The music box played a song it had forgotten years ago.",
+  "start": 38.67,
+  "end": 41.85,
+  "f0": 1160,
+  "f1": 1256,
+  "segments": [
+   16,
+   17
+  ]
+ },
+ {
+  "text": "So one night,",
+  "start": 42.39,
+  "end": 43.61,
+  "f0": 1272,
+  "f1": 1308,
+  "segments": [
+   17,
+   19
+  ]
+ },
+ {
+  "text": "the captain of the guard hid in the mayor's house and waited.",
+  "start": 43.93,
+  "end": 47.0,
+  "f0": 1318,
+  "f1": 1410,
+  "segments": [
+   19,
+   20
+  ]
+ },
+ {
+  "text": "At midnight,",
+  "start": 47.54,
+  "end": 48.15,
+  "f0": 1426,
+  "f1": 1444,
+  "segments": [
+   20,
+   21
+  ]
+ },
+ {
+  "text": "the window creaked open.",
+  "start": 48.48,
+  "end": 50.08,
+  "f0": 1454,
+  "f1": 1502,
+  "segments": [
+   21,
+   22
+  ]
+ },
+ {
+  "text": "A masked figure climbed in,",
+  "start": 50.51,
+  "end": 52.166,
+  "f0": 1515,
+  "f1": 1565,
+  "segments": [
+   22,
+   23
+  ]
+ },
+ {
+  "text": "carrying a chair.",
+  "start": 52.166,
+  "end": 53.27,
+  "f0": 1565,
+  "f1": 1598,
+  "segments": [
+   22,
+   23
+  ]
+ },
+ {
+  "text": "The whole town came running with torches.",
+  "start": 53.78,
+  "end": 56.03,
+  "f0": 1613,
+  "f1": 1681,
+  "segments": [
+   23,
+   24
+  ]
+ },
+ {
+  "text": "You see,",
+  "start": 56.53,
+  "end": 57.023,
+  "f0": 1696,
+  "f1": 1711,
+  "segments": [
+   24,
+   25
+  ]
+ },
+ {
+  "text": "the thief had never wanted their things.",
+  "start": 57.023,
+  "end": 59.24,
+  "f0": 1711,
+  "f1": 1777,
+  "segments": [
+   24,
+   25
+  ]
+ },
+ {
+  "text": "He only took what was broken.",
+  "start": 59.6,
+  "end": 61.33,
+  "f0": 1788,
+  "f1": 1840,
+  "segments": [
+   25,
+   26
+  ]
+ },
+ {
+  "text": "He carried it home,",
+  "start": 61.78,
+  "end": 62.7,
+  "f0": 1853,
+  "f1": 1881,
+  "segments": [
+   26,
+   27
+  ]
+ },
+ {
+  "text": "mended it by candlelight,",
+  "start": 63.01,
+  "end": 64.26,
+  "f0": 1890,
+  "f1": 1928,
+  "segments": [
+   27,
+   28
+  ]
+ },
+ {
+  "text": "and brought it back before morning.",
+  "start": 64.54,
+  "end": 66.12,
+  "f0": 1936,
+  "f1": 1984,
+  "segments": [
+   28,
+   29
+  ]
+ },
+ {
+  "text": "And nobody in that town ever opened the door to a stranger.",
+  "start": 66.59,
+  "end": 70.01,
+  "f0": 1998,
+  "f1": 2100,
+  "segments": [
+   29,
+   30
+  ]
+ },
+ {
+  "text": "The town held a trial.",
+  "start": 70.55,
+  "end": 71.87,
+  "f0": 2116,
+  "f1": 2156,
+  "segments": [
+   30,
+   31
+  ]
+ },
+ {
+  "text": "The verdict took one minute.",
+  "start": 72.31,
+  "end": 73.85,
+  "f0": 2169,
+  "f1": 2216,
+  "segments": [
+   31,
+   32
+  ]
+ },
+ {
+  "text": "They sentenced him to a workshop on the main street,",
+  "start": 74.38,
+  "end": 76.82,
+  "f0": 2231,
+  "f1": 2305,
+  "segments": [
+   32,
+   33
+  ]
+ },
+ {
+  "text": "with his name above the door.",
+  "start": 77.03,
+  "end": 78.39,
+  "f0": 2311,
+  "f1": 2352,
+  "segments": [
+   33,
+   34
+  ]
+ },
+ {
+  "text": "And he never had to steal a broken thing again.",
+  "start": 78.83,
+  "end": 81.67,
+  "f0": 2365,
+  "f1": 2450,
+  "segments": [
+   34,
+   35
+  ]
+ },
+ {
+  "text": "People just left them on his step.",
+  "start": 82.12,
+  "end": 83.89,
+  "f0": 2464,
+  "f1": 2517,
+  "segments": [
+   35,
+   36
+  ]
+ }
+]
