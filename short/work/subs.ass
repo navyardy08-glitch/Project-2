@@ -1,0 +1,66 @@
+[Script Info]
+ScriptType: v4.00+
+PlayResX: 1080
+PlayResY: 1920
+WrapStyle: 0
+ScaledBorderAndShadow: yes
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Cap,Inter Black,78,&H00FFFFFF,&H00FFFFFF,&H00201820,&H80000000,0,0,0,0,100,100,1.5,0,1,8,3,2,90,90,470,1
+Style: Thanks,Inter Black,118,&H0070E4FF,&H00FFFFFF,&H00201820,&H90000000,0,0,0,0,100,100,1,0,1,9,5,2,60,60,420,1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+Dialogue: 0,0:00:00.10,0:00:01.57,Cap,,0,0,0,,{\fad(60,60)}The greatest thief in the
+Dialogue: 0,0:00:01.57,0:00:03.43,Cap,,0,0,0,,{\fad(60,60)}city was finally caught.
+Dialogue: 0,0:00:03.43,0:00:05.07,Cap,,0,0,0,,{\fad(60,60)}He was putting things back.
+Dialogue: 0,0:00:05.37,0:00:06.70,Cap,,0,0,0,,{\fad(60,60)}They say it happened in
+Dialogue: 0,0:00:06.70,0:00:08.07,Cap,,0,0,0,,{\fad(60,60)}a crooked little town of
+Dialogue: 0,0:00:08.07,0:00:09.83,Cap,,0,0,0,,{\fad(60,60)}chimneys and cobblestones.
+Dialogue: 0,0:00:10.13,0:00:11.00,Cap,,0,0,0,,{\fad(60,60)}Every night,
+Dialogue: 0,0:00:11.00,0:00:12.57,Cap,,0,0,0,,{\fad(60,60)}something went missing.
+Dialogue: 0,0:00:12.80,0:00:13.73,Cap,,0,0,0,,{\fad(60,60)}A clock.
+Dialogue: 0,0:00:13.73,0:00:14.63,Cap,,0,0,0,,{\fad(60,60)}A kettle.
+Dialogue: 0,0:00:14.63,0:00:16.57,Cap,,0,0,0,,{\fad(60,60)}A child's music box.
+Dialogue: 0,0:00:16.57,0:00:18.90,Cap,,0,0,0,,{\fad(60,60)}The mayor lost his favourite chair.
+Dialogue: 0,0:00:19.13,0:00:20.97,Cap,,0,0,0,,{\fad(60,60)}People bolted their doors.
+Dialogue: 0,0:00:20.97,0:00:22.83,Cap,,0,0,0,,{\fad(60,60)}They nailed their windows shut.
+Dialogue: 0,0:00:22.83,0:00:24.03,Cap,,0,0,0,,{\fad(60,60)}One man slept inside
+Dialogue: 0,0:00:24.03,0:00:25.30,Cap,,0,0,0,,{\fad(60,60)}his own cupboard.
+Dialogue: 0,0:00:25.53,0:00:27.73,Cap,,0,0,0,,{\fad(60,60)}The guards chased shadows across the
+Dialogue: 0,0:00:27.73,0:00:29.57,Cap,,0,0,0,,{\fad(60,60)}rooftops for a whole year.
+Dialogue: 0,0:00:29.87,0:00:32.67,Cap,,0,0,0,,{\fad(60,60)}But then people noticed something strange.
+Dialogue: 0,0:00:32.93,0:00:34.53,Cap,,0,0,0,,{\fad(60,60)}Everything came back.
+Dialogue: 0,0:00:34.77,0:00:36.57,Cap,,0,0,0,,{\fad(60,60)}The clock came back ticking.
+Dialogue: 0,0:00:36.57,0:00:38.67,Cap,,0,0,0,,{\fad(60,60)}The kettle came back whistling.
+Dialogue: 0,0:00:38.67,0:00:40.27,Cap,,0,0,0,,{\fad(60,60)}The music box played a song
+Dialogue: 0,0:00:40.27,0:00:42.13,Cap,,0,0,0,,{\fad(60,60)}it had forgotten years ago.
+Dialogue: 0,0:00:42.40,0:00:43.93,Cap,,0,0,0,,{\fad(60,60)}So one night,
+Dialogue: 0,0:00:43.93,0:00:45.37,Cap,,0,0,0,,{\fad(60,60)}the captain of the guard hid
+Dialogue: 0,0:00:45.37,0:00:47.27,Cap,,0,0,0,,{\fad(60,60)}in the mayor's house and waited.
+Dialogue: 0,0:00:47.53,0:00:48.47,Cap,,0,0,0,,{\fad(60,60)}At midnight,
+Dialogue: 0,0:00:48.47,0:00:50.50,Cap,,0,0,0,,{\fad(60,60)}the window creaked open.
+Dialogue: 0,0:00:50.50,0:00:52.17,Cap,,0,0,0,,{\fad(60,60)}A masked figure climbed in,
+Dialogue: 0,0:00:52.17,0:00:53.53,Cap,,0,0,0,,{\fad(60,60)}carrying a chair.
+Dialogue: 0,0:00:53.77,0:00:54.83,Cap,,0,0,0,,{\fad(60,60)}The whole town came
+Dialogue: 0,0:00:54.83,0:00:56.30,Cap,,0,0,0,,{\fad(60,60)}running with torches.
+Dialogue: 0,0:00:56.53,0:00:57.03,Cap,,0,0,0,,{\fad(60,60)}You see,
+Dialogue: 0,0:00:57.03,0:00:58.10,Cap,,0,0,0,,{\fad(60,60)}the thief had never
+Dialogue: 0,0:00:58.10,0:00:59.60,Cap,,0,0,0,,{\fad(60,60)}wanted their things.
+Dialogue: 0,0:00:59.60,0:01:01.77,Cap,,0,0,0,,{\fad(60,60)}He only took what was broken.
+Dialogue: 0,0:01:01.77,0:01:03.00,Cap,,0,0,0,,{\fad(60,60)}He carried it home,
+Dialogue: 0,0:01:03.00,0:01:04.53,Cap,,0,0,0,,{\fad(60,60)}mended it by candlelight,
+Dialogue: 0,0:01:04.53,0:01:06.60,Cap,,0,0,0,,{\fad(60,60)}and brought it back before morning.
+Dialogue: 0,0:01:06.60,0:01:08.23,Cap,,0,0,0,,{\fad(60,60)}And nobody in that town ever
+Dialogue: 0,0:01:08.23,0:01:10.27,Cap,,0,0,0,,{\fad(60,60)}opened the door to a stranger.
+Dialogue: 0,0:01:10.53,0:01:12.30,Cap,,0,0,0,,{\fad(60,60)}The town held a trial.
+Dialogue: 0,0:01:12.30,0:01:14.13,Cap,,0,0,0,,{\fad(60,60)}The verdict took one minute.
+Dialogue: 0,0:01:14.37,0:01:15.47,Cap,,0,0,0,,{\fad(60,60)}They sentenced him to a
+Dialogue: 0,0:01:15.47,0:01:17.03,Cap,,0,0,0,,{\fad(60,60)}workshop on the main street,
+Dialogue: 0,0:01:17.03,0:01:18.83,Cap,,0,0,0,,{\fad(60,60)}with his name above the door.
+Dialogue: 0,0:01:18.83,0:01:20.00,Cap,,0,0,0,,{\fad(60,60)}And he never had to
+Dialogue: 0,0:01:20.00,0:01:22.13,Cap,,0,0,0,,{\fad(60,60)}steal a broken thing again.
+Dialogue: 0,0:01:22.13,0:01:23.27,Cap,,0,0,0,,{\fad(60,60)}People just left them
+Dialogue: 0,0:01:23.27,0:01:24.30,Cap,,0,0,0,,{\fad(60,60)}on his step.
+Dialogue: 1,0:01:25.60,0:01:28.33,Thanks,,0,0,0,,{\fad(250,0)\fscx55\fscy55\t(0,260,\fscx110\fscy110)\t(260,420,\fscx100\fscy100)}Thanks for\Nwatching!

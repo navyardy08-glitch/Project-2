@@ -300,15 +300,27 @@ def music(N):
         place(out, pan(fife(m2f(m), d * bm * 0.95, 0.4, r, rel=0.07), 0.12), F(2232) + b * bm, 1.0)
     # --- twist (82.1): music stops, low drone; hit + ting on the last word
     place(out, pan(brush(0.5, r, 0.4, swish=True), 0.0), F(2458), 0.7)
-    place(out, pad([m2f(38), m2f(45)], END - F(2462), 0.3, r, att=0.4, rel=0.5, warm=420), F(2462), 1.0)
+    place(out, pad([m2f(38), m2f(45)], F(2540) - F(2462), 0.3, r, att=0.4, rel=1.2, warm=420), F(2462), 1.0)
     LAST = F(2508)
     place(out, pan(timpani(m2f(38), 0.9, r, 1.8), 0.0), LAST, 1.1)
     place(out, pan(glock(m2f(86), 0.6, r, 1.6), 0.25), LAST + 0.02, 0.8)
     place(out, pan(triangle(0.35, r, 1.4), 0.3), LAST + 0.02, 0.5)
     place(out, pan(musicbox(m2f(74), 0.5, r, 1.6), -0.2), LAST + 0.12, 0.8)
+    # --- outro (84.3 - 88.3): warm D-major resolution under the goodbye wave, gentle fade to the end
+    OUT = F(2526)
+    place(out, pad([m2f(50), m2f(57), m2f(62), m2f(66)], END - OUT, 0.3, r, att=1.0, rel=1.4, warm=1300), OUT, 1.0)
+    for k, m in enumerate([38, 45, 43, 45, 38]):
+        bass(F(2560) + k * 2 * bm, m, 0.45, 1.2)
+    for (b, m) in [(0, 74), (1, 78), (2, 81), (3, 83), (4, 81), (5, 78), (6, 81), (7, 86)]:
+        place(out, pan(musicbox(m2f(m), 0.42, r, 1.8), 0.15), F(2560) + b * bm * 0.75, 0.85)
+        if b % 2 == 0: pz(F(2560) + b * bm * 0.75, m - 12, 0.3, -0.2, 0.6)
+    FIN = F(2560) + 7 * bm * 0.75
+    place(out, pan(glock(m2f(86), 0.45, r, 2.4), 0.2), FIN, 0.7)
+    place(out, pan(triangle(0.25, r, 2.0), 0.3), FIN, 0.4)
+    place(out, pan(timpani(m2f(38), 0.4, r, 2.0), 0.0), FIN, 0.7)
     ir = make_ir(1.2, 5, hf=1.4)
     out = out + 0.15 * convolve_st(out, ir)
-    return fades(out, 0.0, 0.2)
+    return fades(out, 0.0, 1.3)
 
 
 # ================================================================ sfx
@@ -401,7 +413,10 @@ def sfx(N):
     P(wood_thud(r, 0.5, 160), 2488, 0.45, 0.2)
     P(creak(0.4, r, 110, 160), 2489, 0.25, -0.1)
     P(ting(r, 3520, 0.5, 1.4), 2505, 0.45, 0.2)
-    return fades(out, 0.01, 0.25)
+    # outro: sparkles and a few birds while everyone waves
+    P(ting(r, 3136, 0.4, 1.2), 2566, 0.35, -0.2); P(ting(r, 3951, 0.35, 1.2), 2590, 0.3, 0.2)
+    P(whoosh(1.2, r, 0.8, 300, 2000, 1.0, 0.4, 0.05), 2558, 0.15)
+    return fades(out, 0.01, 1.0)
 
 
 if __name__ == "__main__":

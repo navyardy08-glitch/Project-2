@@ -2,7 +2,7 @@
 import { clamp, lin, smooth, smoother, easeOut, easeIn, easeInOut, back, spring, lerp, lerp3, add3, kick, blinkAt, idle, q } from "./motion.js";
 import * as C from "./castdefs.js";
 
-export const FPS = 30, TOTAL = 2521;
+export const FPS = 30, TOTAL = 2650; // 2521 = end of voice; 2521-2560 settle, 2560-2650 thanks card
 const NAME = new Map(Object.entries(C).map(([k, v]) => [v, k]));
 
 // ---------------- world layout ----------------
@@ -542,13 +542,13 @@ shot("customer", 2412, 2458, (f) => {
   return { cam, L: LP.warm, actors: a, fx, world: { sign: true }, dof: { focus: 5.4, cInf: 3 }, shadow: { c: [-2, 0, SDZ], r: 18 } };
 });
 // 38 people just left them on his step (twist: push-in with roll)
-shot("step", 2458, TOTAL, (f) => {
-  const cam = mv(f, 2458, TOTAL, [0.9, 1.3, SDZ + 0.7], [FX + 0.6, 0.95, SDZ + 0.1], [-0.9, 0.95, SDZ + 0.4], [FX + 0.6, 0.92, SDZ + 0.1], 42, 39, smooth, 0, 4);
+shot("step", 2458, 2560, (f) => {
+  const cam = mv(f, 2458, 2521, [0.9, 1.3, SDZ + 0.7], [FX + 0.6, 0.95, SDZ + 0.1], [-0.9, 0.95, SDZ + 0.4], [FX + 0.6, 0.92, SDZ + 0.1], 42, 39, smooth, 0, 4);
   cam.pos = add3(cam.pos, [-(f - 2458) * 0.002, 0, 0]);
   const kz = lerp(SDZ + 3.4, SDZ + 1.2, smooth(lin(2462, 2486, f))), placed = f >= 2488;
   const a = [
     act("kid", "side", C.KID, FX + 1.05, kz, { ...lifeS(f, 13), mode: f < 2486 ? "run" : "stand", phase: ph(SDZ + 3.4 - kz, "run"), arm: placed ? "reach" : "carry", expr: "happy" }, { dir: [0, -1], visible: f >= 2462 }),
-    act("thief", "front", shopThief, -4.25, SDZ - 0.05, { ...life(f, 3), expr: f >= 2500 ? "happy" : "ooh", armL: f >= 2500 ? "cheek" : "hang", armR: f >= 2500 ? "cheek" : "hang", look: 0.4 }, { y: STEPY, blob: false, visible: f >= 2493, pull: 0.02 }),
+    act("thief", "front", shopThief, -4.25, SDZ - 0.05, { ...life(f, 3), expr: f >= 2528 ? "laugh" : f >= 2500 ? "happy" : "ooh", armL: f >= 2500 ? "cheek" : "hang", armR: f >= 2528 ? "wave" : f >= 2500 ? "cheek" : "hang", wave: q(((f * 0.07) % 1), 0.08), look: f >= 2528 ? 0 : 0.4 }, { y: STEPY, blob: false, visible: f >= 2493, pull: 0.02 }),
   ];
   const fx = [
     { id: "chair", kind: "chair", pos: [FX + 0.9, 0.44, SDZ - 0.68], size: 0.7, k: 1, rot: 0.06 },
@@ -559,6 +559,24 @@ shot("step", 2458, TOTAL, (f) => {
   if (placed) { const pop = back(clamp((f - 2488) / 6)); fx.push({ id: "box", kind: "box", pos: [FX + 1.15, 0.05 + 0.12 * pop, SDZ + 0.68], size: 0.3, t: 0.4 }); }
   burst(fx, "b", f, 2488, [FX + 1.2, 0.3, SDZ + 0.7], 0.5, 7); spark(fx, "s", f, 2504, [FX + 0.9, 1.6, SDZ + 0.5], 0.6, 16);
   return { cam, L: LP.warm, actors: a, fx, world: { sign: true, door: f >= 2489 ? easeOut(lin(2489, 2499, f)) * 0.95 : 0 }, kicks: [{ f: 2488, a: 0.012 }], dof: { focus: 4, cInf: 0 }, shadow: { c: [-2, 0, SDZ], r: 16 } };
+});
+
+// 39 outro: the whole street waves goodbye ("Thanks for watching" text is added in finish.sh)
+shot("thanks", 2560, TOTAL, (f) => {
+  const t = smoother(lin(2560, TOTAL, f));
+  const cam = mv(f, 2560, TOTAL, [2.95, 1.55, SDZ + 2.9], [-3.3, 2.05, SDZ - 0.1], [3.4, 1.7, SDZ + 3.4], [-3.3, 2.1, SDZ - 0.1], 47, 48, smoother, -1, 1);
+  cam.pos = add3(cam.pos, [0, 0, (f - 2560) * 0.002]);
+  const w = (s) => q(((f * 0.075 + s) % 1), 0.08), hop = (s) => q(-10 * Math.abs(Math.sin(f * 0.32 + s)), 1);
+  const a = [
+    act("thief", "front", shopThief, -3.0, SDZ + 0.3, { ...life(f, 3), expr: "laugh", armR: "wave", wave: w(0), armL: "hip" }),
+    act("kid", "front", C.KID, -2.3, SDZ - 0.55, { ...life(f, 13), expr: "happy", armL: "up", armR: "wave", wave: w(0.4), bob: hop(0) }),
+    act("woman", "front", C.WOMAN2, -3.0, SDZ + 1.25, { ...life(f, 21), expr: "smile", armR: "wave", wave: w(0.2), armL: "hip", turn: -0.3 }),
+    act("baker", "front", C.BAKER, -3.5, SDZ - 1.15, { ...life(f, 9), expr: "grin", armL: "wave", armR: "wave", wave: w(0.6), bob: hop(1.3), turn: 0.2 }),
+    act("captain", "front", C.CAPTAIN, -3.3, SDZ - 1.9, { ...life(f, 5), expr: "smile", armR: "wave", wave: w(0.8), armL: "hip", turn: 0.3 }),
+  ];
+  const fx = []; smokes(fx, f); birds(fx, f - 2560, 3, [-12, 12, SDZ - 8]);
+  spark(fx, "s1", f, 2566, [-2.0, 3.4, SDZ + 1.4], 0.5, 16); spark(fx, "s2", f, 2590, [-3.6, 3.0, SDZ - 1.0], 0.4, 16);
+  return { cam, L: LP.golden, actors: a, fx, world: { sign: true }, dof: { focus: 7, cInf: 0 }, shadow: { c: [-2, 0, SDZ], r: 22 } };
 });
 
 export const SHOTLIST = SHOTS.map((s) => ({ id: s.id, a: s.a, b: s.b }));
