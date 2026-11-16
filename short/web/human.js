@@ -389,11 +389,13 @@ function hair(g, d, layer) {
     return;
   }
   if (d.female) {
-    const top = T - 20;
+    const top = T - 9, o = 7;
     shp(g, (c) => {
-      c.moveTo(300 - ch - 6, F.eyeY + 22);
-      c.bezierCurveTo(300 - ch - 14, top + 20, 300 - 40, top - 4, 300, top);
-      c.bezierCurveTo(300 + 40, top - 4, 300 + ch + 14, top + 20, 300 + ch + 6, F.eyeY + 22);
+      c.moveTo(300 - ch - 2, F.eyeY + 22);
+      c.bezierCurveTo(300 - ch - 3, F.eyeY - 30, 300 - tw - o, T + 40, 300 - tw - o + 2, T + 52);
+      c.bezierCurveTo(300 - tw - o + 2, T + 14, 300 - tw * 0.6 - o, top, 300, top);
+      c.bezierCurveTo(300 + tw * 0.6 + o, top, 300 + tw + o - 2, T + 14, 300 + tw + o - 2, T + 52);
+      c.bezierCurveTo(300 + tw + o, T + 40, 300 + ch + 3, F.eyeY - 30, 300 + ch + 2, F.eyeY + 22);
       c.bezierCurveTo(300 + tw - 2, F.eyeY - 20, 300 + tw - 18, T + 34, 300 + 4, T + 26);    // hairline right
       c.bezierCurveTo(300 - tw + 16, T + 32, 300 - tw + 2, F.eyeY - 22, 300 - ch - 6, F.eyeY + 22); // hairline left
     }, H, { inner: (c) => {
@@ -404,11 +406,13 @@ function hair(g, d, layer) {
     line(g, [[300 + 2, top + 2], [300 + 4, T + 26]], 4, d.sindoor ? "#d4142a" : shade(H, 0.5));
     if (d.strands) for (const s of [-1, 1]) curve(g, [300 + s * (tw - 8), T + 30], [300 + s * (tw + 6), F.eyeY + 10], [300 + s * (tw - 4), F.eyeY + 48], 3.5, H);
   } else {
-    const top = T - 16;
+    const top = T - 12, o = 8;
     shp(g, (c) => {
-      c.moveTo(300 - ch + 2, F.eyeY + 4);
-      c.bezierCurveTo(300 - ch - 10, top + 30, 300 - 50, top - 6, 300 + 10, top - 4);
-      c.bezierCurveTo(300 + 70, top - 4, 300 + ch + 12, top + 30, 300 + ch - 2, F.eyeY + 4);
+      c.moveTo(300 - ch + 1, F.eyeY + 4);
+      c.bezierCurveTo(300 - ch - 2, F.eyeY - 30, 300 - tw - o, T + 40, 300 - tw - o + 2, T + 50);
+      c.bezierCurveTo(300 - tw - o + 2, T + 10, 300 - tw * 0.55 - o, top - 2, 300 + 6, top - 3);
+      c.bezierCurveTo(300 + tw * 0.65 + o, top - 2, 300 + tw + o, T + 12, 300 + tw + o - 2, T + 50);
+      c.bezierCurveTo(300 + tw + o, T + 40, 300 + ch + 2, F.eyeY - 30, 300 + ch - 1, F.eyeY + 4);
       c.bezierCurveTo(300 + tw - 6, F.eyeY - 30, 300 + tw - 10, T + 30, 300 + 40, T + 22);           // right hairline
       c.bezierCurveTo(300 + 10, T + 30, 300 - 30, T + 14, 300 - 56, T + 34);                        // side-swept fringe
       c.bezierCurveTo(300 - tw + 8, T + 44, 300 - tw + 2, F.eyeY - 30, 300 - ch + 2, F.eyeY + 4);
