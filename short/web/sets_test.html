@@ -1,0 +1,22 @@
+<!doctype html><html><body style="margin:0">
+<canvas id="c" width="2400" height="2200"></canvas>
+<script type="module">
+import { SETS } from "./sets.js"; import { drawHuman } from "./human.js"; import * as F from "./family.js";
+const c = document.getElementById("c"), g = c.getContext("2d");
+await document.fonts.load("bold 64px 'Noto Sans Telugu'");
+g.fillStyle = "#222"; g.fillRect(0, 0, 2400, 2200);
+const shots = [
+  ["busStand", { busX: -60 }, [[F.ATTA, 360, { expr: "angry", armR: "point" }], [F.KODALU, 820, { expr: "happy", armL: "fold", armR: "fold" }]]],
+  ["kitchen", { flame: true, milkOver: true }, [[F.KODALU, 540, { expr: "shock", armL: "cheek", armR: "cheek" }]]],
+  ["hall", { mess: true }, [[F.MAMAGARU, 320, { expr: "sad" }], [F.KODUKU, 780, { expr: "angry", armL: "hip" }]]],
+  ["frontDoor", { open: 0.9 }, [[F.ATTA, 540, { expr: "happy" }]]],
+  ["tulasi", { wilt: 1 }, []],
+];
+shots.forEach(([name, st, cast], i) => {
+  const off = document.createElement("canvas"); off.width = 1080; off.height = 1920; const o = off.getContext("2d");
+  SETS[name](o, st);
+  for (const [d, x, opt] of cast) { o.save(); o.translate(x - 300 * 1.25, 1780 - 975 * 1.25); o.scale(1.25, 1.25); drawHuman(o, d, opt); o.restore(); }
+  g.drawImage(off, (i % 5) * 480, 0, 460, 818);
+});
+window.done = true;
+</script></body></html>
