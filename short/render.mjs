@@ -38,7 +38,7 @@ if (outArg === "page") {
   const parse = (s) => s.split(",").flatMap((t) => { const m = t.match(/^(\d+)-(\d+)$/); if (!m) return [Number(t)]; const a = []; for (let i = +m[1]; i <= +m[2]; i++) a.push(i); return a; });
   const frames = parse(spec);
   fs.mkdirSync(outArg, { recursive: true });
-  await page.goto(`http://127.0.0.1:${port}/index.html`);
+  await page.goto(`http://127.0.0.1:${port}/${process.env.PAGE || "index.html"}`);
   await page.waitForFunction("window.ready === true", null, { timeout: 300000 });
   const t0 = Date.now();
   let n = 0;

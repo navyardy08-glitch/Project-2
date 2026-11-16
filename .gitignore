@@ -10,3 +10,6 @@ short/stills/f/
 short/stills/check/
 short/work/*.log
 *.wav
+telugu_short/frames/
+telugu_short/qa/
+telugu_short/*.log

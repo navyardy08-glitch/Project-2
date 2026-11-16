@@ -135,4 +135,29 @@ export function tulasi(g, s = {}) {
 }
 const lerp = (a, b, t) => a + (b - a) * t;
 
-export const SETS = { kitchen, hall, busStand, frontDoor, tulasi };
+export function bedroom(g, s = {}) {
+  room(g, s.night ? "#b7c4e0" : "#f0d9e0", "#9a6a48");
+  // window: sun or moon
+  box(g, 600, 250, 320, 340, s.night ? "#1d2a4a" : "#bfe3f2", 7, 6);
+  if (s.night) { ell(g, 820, 340, 42, 42, "#f4efd0", 3); for (const [x, y] of [[660, 300], [700, 470], [880, 520], [760, 280]]) ell(g, x, y, 4, 4, "#fff", 0); }
+  else { g.fillStyle = "rgba(255,240,180,0.55)"; g.beginPath(); g.moveTo(600, 590); g.lineTo(920, 590); g.lineTo(1080, 1400); g.lineTo(420, 1400); g.closePath(); g.fill(); }
+  box(g, 755, 250, 10, 340, "#8a5a34", 0); box(g, 600, 415, 320, 10, "#8a5a34", 0);
+  // wall clock (hour hand at s.hour)
+  box(g, 150, 230, 160, 160, "#f6f0e2", 6, 80);
+  const hr = (s.hour ?? 9) / 12 * Math.PI * 2 - Math.PI / 2;
+  g.lineWidth = 7; g.strokeStyle = OL; g.beginPath(); g.moveTo(230, 310); g.lineTo(230 + Math.cos(hr) * 40, 310 + Math.sin(hr) * 40); g.moveTo(230, 310); g.lineTo(230, 252); g.stroke();
+  // cot with mattress and pillow
+  box(g, 60, 1100, 960, 60, "#7a4a2a", 6, 8);
+  box(g, 60, 900, 40, 420, "#6a3e1e", 6); box(g, 980, 980, 40, 340, "#6a3e1e", 6);
+  box(g, 100, 1030, 880, 80, s.night ? "#c8d4ee" : "#f4f0e6", 6, 20);
+  box(g, 120, 980, 200, 70, "#ffffff", 5, 30);
+}
+export function nightTint(g, k = 0.55) {
+  g.save(); g.globalCompositeOperation = "multiply"; g.fillStyle = `rgba(70,90,160,${k})`; g.fillRect(0, 0, 1080, 1920); g.restore();
+}
+export function blanket(g, col = "#e8708e") {
+  box(g, 300, 1000, 680, 110, col, 6, 30);
+  g.strokeStyle = shade(col, 0.75); g.lineWidth = 3; for (let x = 360; x < 960; x += 70) { g.beginPath(); g.moveTo(x, 1010); g.lineTo(x - 20, 1100); g.stroke(); }
+}
+
+export const SETS = { kitchen, hall, busStand, frontDoor, tulasi, bedroom };

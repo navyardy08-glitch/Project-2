@@ -1,0 +1,10 @@
+<!doctype html><html><body style="margin:0;background:#000">
+<canvas id="c" width="1080" height="1920"></canvas>
+<script type="module">
+import { init, renderTo, TOTAL } from "./telugu.js";
+const c = document.getElementById("c"), g = c.getContext("2d");
+await init();
+window.TOTAL = TOTAL;
+window.renderFrame = (f) => { renderTo(g, f); return c.toDataURL("image/jpeg", 0.92); };
+window.ready = true;
+</script></body></html>
