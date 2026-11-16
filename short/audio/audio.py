@@ -271,7 +271,8 @@ def music(N):
         i += 1
     place(out, pan(bell(r, 146.8, 0.5, 3.0), 0.0), F(1432), 0.7)
     # --- the town comes running (53.5 - 56.3): snare roll + timpani build
-    place(out, snare_roll(F(1606), F(1690), 0.15, 0.75, r), 0.0, 0.6)
+    for (ts, vs) in snare_roll(F(1606), F(1690), 0.15, 0.75, r):
+        place(out, pan(snare(vs, r, 0.2, snappy=0.8), -0.1), ts, 0.45)
     tk = F(1606)
     while tk < F(1686):
         u = (tk - F(1606)) / (F(1686) - F(1606))
@@ -362,7 +363,7 @@ def sfx(N):
     # strange... everything came back
     P(ting(r, 2093, 0.3, 0.8), 953, 0.4)
     for i, f0 in enumerate((990, 1000, 1010)): P(ting(r, [2637, 3136, 3520][i], 0.45, 1.0), f0 + 1, 0.45, -0.3 + 0.3 * i); P(puff_snd(r, 0.3), f0, 0.4)
-    for i, fs in enumerate(np.arange(1040, 1090, 15)): P(knock(r, 0.5) * 0.6 + ting(r, 1800 if i % 2 else 1500, 0.12, 0.15), fs, 0.5, -0.1)
+    for i, fs in enumerate(np.arange(1040, 1090, 15)): P(knock(r, 0.3), fs, 0.5, -0.1); P(ting(r, 1800 if i % 2 else 1500, 0.12, 0.15), fs, 0.5, -0.1)
     P(kettle_whistle(F(1150) - F(1104), r), 1104, 0.22, 0.1)
     P(clink(r, f0=2400, dur=0.12), 1164, 0.4)
     for fs in np.arange(1212, 1262, 7.5): P(soft_step(r, 0.3), fs, 0.45)
@@ -389,8 +390,8 @@ def sfx(N):
     for k in range(4): place(out, pan(babble(F(2196) - F(2110), r, [130, 210, 160, 230][k], 1.0, rate=4.5, active=0.6), -0.6 + 0.4 * k), F(2110), 0.05)
     P(hammer_hit(r, 1.1), 2200, 0.5); P(wood_thud(r, 1.0, 90), 2200, 0.5)
     for k in range(9): P(hurrah(r, [140, 230, 180, 300, 160, 250, 200, 320, 150][k], 1.0, kid=k in (3, 7)), 2206 + k * 5 + r.integers(0, 4), 0.16, -0.8 + 0.2 * k)
-    n = ns(F(2300) - F(2206)); env = np.interp(np.arange(n) / SR, [0, 0.4, 1.6, n / SR], [0, 1, 0.7, 0])
-    place(out, applause(n / SR, r, 22, env), F(2206), 0.1)
+    dA = 3.0; nA = ns(dA); env = np.interp(np.arange(nA) / SR, [0, 0.4, 1.6, dA], [0, 1, 0.7, 0])
+    place(out, applause(dA, r, 22, env), F(2206), 0.1)
     P(whoosh(1.4, r, 0.9, 200, 1500, 1.0, 0.4, 0.05), 2226, 0.2)
     for fsp, fq in [(2333, 2637), (2341, 3136), (2385, 3520)]: P(ting(r, fq, 0.4, 1.0), fsp, 0.4, 0.2)
     for fh in np.arange(2370, 2412, 14): P(knock(r, 0.6), fh, 0.4, -0.1)
