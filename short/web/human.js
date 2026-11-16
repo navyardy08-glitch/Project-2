@@ -63,42 +63,76 @@ function limb(g, A, B, C, w0, w1, col, outline = true) {
   if (outline) pass(2 * LW, OL);
   pass(0, col);
 }
+/** one continuous arm: a tapered outline along a smooth curve from shoulder to wrist (no joints),
+ *  sleeve painted onto the same shape, outline only along the sides so the shoulder melts into the torso */
 function arm(g, d, side, pose, sleeveCol, sleeveLen, prop) {
   const sh = d.sh;
-  const S = [300 + side * (sh - 14), 314];
+  const S = [300 + side * (sh - 22), 300];
   const [e, h] = POSE[pose] || POSE.down;
   const E = [300 + side * e[0] * sh * 1.02, e[1]], H = [300 + side * h[0] * sh, h[1]];
-  const w = d.armW || 30, skin = d.skin;
-  limb(g, S, E, H, w, w * 0.82, skin);
-  // light rim of shade along the outer edge of the forearm
-  g.save(); g.globalAlpha = 0.22; limb(g, [S[0] + side * 6, S[1]], [E[0] + side * 6, E[1]], [H[0] + side * 5, H[1]], w * 0.35, w * 0.3, shade(skin, 0.5), false); g.restore();
-  if (d.bangles) {
-    for (const t of [0.7, 0.79, 0.86]) {
-      const p = P(E, H, t), ang = Math.atan2(H[1] - E[1], H[0] - E[0]) + Math.PI / 2;
-      const dx = Math.cos(ang) * (w * 0.41 + 3), dy = Math.sin(ang) * (w * 0.41 + 3);
-      line(g, [[p[0] - dx, p[1] - dy], [p[0] + dx, p[1] + dy]], 6, d.bangles, "butt");
-    }
+  const w = (d.armW || 30) + 4, skin = d.skin;
+  // quadratic through S, E (at t=.5), H
+  const C = [2 * E[0] - (S[0] + H[0]) / 2, 2 * E[1] - (S[1] + H[1]) / 2];
+  const N = 28, pts = [], L = [], R = [];
+  for (let i = 0; i <= N; i++) {
+    const t = i / N, a = (1 - t) * (1 - t), b = 2 * t * (1 - t), c = t * t;
+    pts.push([a * S[0] + b * C[0] + c * H[0], a * S[1] + b * C[1] + c * H[1]]);
   }
+  for (let i = 0; i <= N; i++) {
+    const t = i / N, p0 = pts[Math.max(0, i - 1)], p1 = pts[Math.min(N, i + 1)];
+    let tx = p1[0] - p0[0], ty = p1[1] - p0[1]; const l = Math.hypot(tx, ty) || 1; tx /= l; ty /= l;
+    const wd = (w * lerp(1.12, 0.66, t) * (1 + 0.07 * Math.sin(Math.PI * Math.min(1, t * 2.2)))) / 2;  // shoulder -> wrist taper, soft bicep
+    L.push([pts[i][0] - ty * wd, pts[i][1] + tx * wd]); R.push([pts[i][0] + ty * wd, pts[i][1] - tx * wd]);
+  }
+  const outline = (c) => { c.moveTo(...L[0]); for (const q of L) c.lineTo(...q); for (let i = N; i >= 0; i--) c.lineTo(...R[i]); c.closePath(); };
+  g.beginPath(); outline(g); g.fillStyle = skin; g.fill();
+  g.save(); g.beginPath(); outline(g); g.clip();
+  // soft form shading along the outer edge (one smooth band, no stripes)
+  const outer = side > 0 ? R : L;
+  g.lineJoin = "round"; g.lineCap = "round";
+  g.beginPath(); g.moveTo(...outer[0]); for (const q of outer) g.lineTo(...q); g.lineWidth = w * 0.55; g.strokeStyle = "rgba(70,30,10,0.16)"; g.stroke();
+  // sleeve painted on the arm
   if (sleeveLen > 0) {
-    const tip = sleeveLen <= 1 ? P(S, E, sleeveLen) : P(E, H, sleeveLen - 1);
-    if (sleeveLen <= 1) { line(g, [S, tip], w + 16 + 2 * LW, OL); line(g, [S, tip], w + 16, sleeveCol); }
-    else limb(g, S, E, tip, w + 16, w + 8, sleeveCol);
-    if (d.sleeveBorder) { const a = sleeveLen <= 1 ? S : E; line(g, [P(a, tip, 0.8), tip], w + 16, d.sleeveBorder, "butt"); }
-    if (sleeveLen <= 1) line(g, [[S[0] - side * 10, S[1] - 4], P(S, tip, 0.85)], 3, shade(sleeveCol, 0.7));
+    const k = Math.round(N * Math.min(1, sleeveLen <= 1 ? sleeveLen * 0.5 : 0.5 + (sleeveLen - 1) * 0.5));
+    g.beginPath(); g.moveTo(...L[0]); for (let i = 0; i <= k; i++) g.lineTo(L[i][0] - (L[i][0] - pts[i][0]) * -0.12, L[i][1] - (L[i][1] - pts[i][1]) * -0.12);
+    for (let i = k; i >= 0; i--) g.lineTo(R[i][0] + (R[i][0] - pts[i][0]) * 0.12, R[i][1] + (R[i][1] - pts[i][1]) * 0.12);
+    g.closePath(); g.fillStyle = sleeveCol; g.fill();
+    g.beginPath(); g.moveTo(...outer[0]); for (let i = 0; i <= k; i++) g.lineTo(...outer[i]); g.lineWidth = w * 0.6; g.strokeStyle = "rgba(40,20,10,0.13)"; g.stroke();
+    const hemCol = d.sleeveBorder || shade(sleeveCol, 0.72);
+    g.beginPath(); g.moveTo(...L[k]); g.lineTo(...R[k]); g.lineWidth = d.sleeveBorder ? 9 : 4; g.strokeStyle = hemCol; g.stroke();
+    if (d.sleeveBorder) { g.beginPath(); g.moveTo(...L[k]); g.lineTo(...R[k]); g.lineWidth = 2.5; g.strokeStyle = shade(hemCol, 0.6); g.stroke(); }
   }
-  // hand: palm + thumb, oriented along the forearm
-  const ang = Math.atan2(H[1] - E[1], H[0] - E[0]);
-  const hx = H[0] + Math.cos(ang) * 10, hy = H[1] + Math.sin(ang) * 10;
-  const t = ang - side * 1.1;
-  ell(g, hx + Math.cos(t) * 13, hy + Math.sin(t) * 13, 9, 6, skin, 3.5, t);
-  ell(g, hx, hy, 19, 15, skin, LW, ang);
-  if (prop) drawProp(g, prop, hx, hy, side, ang);
-  if (pose === "point") {
-    const a0 = [hx + Math.cos(ang) * 12, hy + Math.sin(ang) * 12], f = [hx + Math.cos(ang) * 44, hy + Math.sin(ang) * 44];
-    line(g, [a0, f], 11 + 2 * LW, OL); line(g, [a0, f], 11, skin);
-  } else {
-    for (const k of [-0.35, 0, 0.35]) { const a2 = ang + k; line(g, [[hx + Math.cos(a2) * 13, hy + Math.sin(a2) * 13], [hx + Math.cos(a2) * 19, hy + Math.sin(a2) * 19]], 2.5, shade(skin, 0.5)); }
+  // bangles hug the wrist
+  if (d.bangles) for (const t of [0.8, 0.86, 0.91]) {
+    const i = Math.round(t * N); g.beginPath(); g.moveTo(...L[i]); g.quadraticCurveTo(pts[i][0] + (pts[i][0] - pts[Math.max(0, i - 1)][0]) * 2, pts[i][1] + (pts[i][1] - pts[Math.max(0, i - 1)][1]) * 2, ...R[i]);
+    g.lineWidth = 6; g.strokeStyle = d.bangles; g.stroke();
   }
+  g.restore();
+  // outline the two long sides only (open at the shoulder)
+  g.lineWidth = LW; g.strokeStyle = OL; g.lineJoin = "round"; g.lineCap = "round";
+  for (const side_ of [L, R]) { g.beginPath(); g.moveTo(...side_[2]); for (const q of side_.slice(3)) g.lineTo(...q); g.stroke(); }
+  // hand
+  const ang = Math.atan2(H[1] - pts[N - 3][1], H[0] - pts[N - 3][0]);
+  hand(g, skin, H[0] + Math.cos(ang) * 6, H[1] + Math.sin(ang) * 6, ang, side, pose === "point");
+  if (prop) drawProp(g, prop, H[0] + Math.cos(ang) * 14, H[1] + Math.sin(ang) * 14, side, ang);
+}
+
+/** a simple cartoon hand: rounded palm, four fingers, a thumb; outline drawn once around the union */
+function hand(g, skin, x, y, ang, side, pointing) {
+  g.save(); g.translate(x, y); g.rotate(ang); if (side < 0) g.scale(1, -1);
+  const shapeFn = (c) => {
+    c.moveTo(-4, -12); c.quadraticCurveTo(10, -16, 18, -12);                       // back of hand
+    if (pointing) { c.lineTo(46, -9); c.quadraticCurveTo(52, -4, 46, 0); c.lineTo(22, 0); c.quadraticCurveTo(28, 6, 22, 12); }
+    else { c.quadraticCurveTo(32, -12, 33, -5); c.quadraticCurveTo(36, 0, 32, 4); c.quadraticCurveTo(35, 9, 30, 12); c.quadraticCurveTo(26, 17, 18, 15); }
+    c.quadraticCurveTo(10, 20, 4, 16);                                               // fingertips / palm edge
+    c.quadraticCurveTo(-2, 22, -6, 16);                                              // thumb base
+    c.quadraticCurveTo(-6, 6, -4, -12); c.closePath();
+  };
+  g.beginPath(); shapeFn(g); g.fillStyle = skin; g.fill(); g.lineWidth = 4.5; g.strokeStyle = OL; g.lineJoin = "round"; g.stroke();
+  // thumb
+  g.beginPath(); g.moveTo(2, 10); g.quadraticCurveTo(14, 22, 24, 20); g.lineWidth = 3; g.strokeStyle = shade(skin, 0.5); g.stroke();
+  if (!pointing) for (const yy of [-4, 4]) { g.beginPath(); g.moveTo(20, yy); g.lineTo(30, yy + 1); g.lineWidth = 2.2; g.strokeStyle = shade(skin, 0.55); g.stroke(); }
+  g.restore();
 }
 
 function drawProp(g, prop, x, y, side, ang) {
@@ -136,7 +170,7 @@ function torsoBuild(d, hem) {
   };
 }
 function blouseTop(g, d) {
-  shp(g, torsoBuild(d, 418), d.blouse, { inner: (c) => { c.fillStyle = shade(d.blouse, 0.8); c.fillRect(300 + d.sh * 0.5, 250, 120, 200); } });
+  shp(g, torsoBuild(d, 418), d.blouse, { inner: (c) => { sideShade(c, d.blouse, 0.8, 250, 460); } });
   const sh = d.sh;
   const band = (c) => { c.moveTo(300 - d.waist - 8, 452); c.quadraticCurveTo(300 - 60, 468, 300 - 40, 474); c.bezierCurveTo(300 + 40, 420, 300 + sh * 0.9, 360, 300 + sh + 8, 318); c.quadraticCurveTo(300 + sh * 0.9, 268, 300 + sh * 0.5, 262); c.bezierCurveTo(300 + 20, 330, 300 - 60, 400, 300 - d.waist - 8, 452); c.closePath(); };
   shp(g, band, d.saree, { inner: (c) => {
@@ -149,7 +183,7 @@ function blouseTop(g, d) {
 }
 function shirtTop(g, d) {
   shp(g, torsoBuild(d, 540), d.shirt, { inner: (c) => {
-    c.fillStyle = shade(d.shirt, 0.82); c.fillRect(300 + d.sh * 0.52, 250, 120, 320);
+    sideShade(c, d.shirt, 0.82, 250, 570);
     if (d.check) { c.globalAlpha = 0.18; for (let x = 160; x < 450; x += 28) line(c, [[x, 250], [x, 560]], 5, d.check); for (let y = 270; y < 560; y += 28) line(c, [[150, y], [450, y]], 5, d.check); c.globalAlpha = 1; }
     curve(c, [300 - 70, 470], [300 - 40, 500], [300 - 60, 535], 3, shade(d.shirt, 0.7)); curve(c, [300 + 50, 360], [300 + 70, 420], [300 + 40, 470], 3, shade(d.shirt, 0.7));
   } });
@@ -160,19 +194,26 @@ function shirtTop(g, d) {
 }
 function kurtaTop(g, d) {
   shp(g, torsoBuild(d, 610), d.shirt, { inner: (c) => {
-    c.fillStyle = shade(d.shirt, 0.86); c.fillRect(300 + d.sh * 0.55, 250, 140, 380);
+    sideShade(c, d.shirt, 0.86, 250, 630);
     curve(c, [300 - 80, 470], [300, 520], [300 + 80, 470], 3, shade(d.shirt, 0.75)); // belly fold
   } });
   line(g, [[300, 268], [300, 380]], 3, shade(d.shirt, 0.6));
   for (let y = 292; y < 380; y += 30) dot(g, 300 + 7, y, 4.5, "#c9a24a", 2);
   if (d.kanduva) {
     const b = (c) => { c.moveTo(300 + 40, 262); c.quadraticCurveTo(300 + 90, 258, 300 + d.sh, 286); c.bezierCurveTo(300 + d.sh + 20, 400, 300 + d.sh + 40, 520, 300 + d.sh + 34, 602); c.lineTo(300 + d.sh - 14, 606); c.bezierCurveTo(300 + d.sh - 10, 500, 300 + 70, 380, 300 + 40, 262); c.closePath(); };
-    shp(g, b, d.kanduva, { inner: (c) => { for (let y = 300; y < 620; y += 36) line(c, [[300 + 30, y], [300 + 180, y + 6]], 8, tint(d.kanduva, 0.7)); c.fillStyle = shade(d.kanduva, 0.8); c.fillRect(300 + d.sh + 14, 250, 60, 400); } });
+    shp(g, b, d.kanduva, { inner: (c) => { for (let y = 300; y < 620; y += 36) line(c, [[300 + 30, y], [300 + 180, y + 6]], 8, tint(d.kanduva, 0.7));  } });
     for (let x = -10; x <= 36; x += 9) line(g, [[300 + d.sh + x, 604], [300 + d.sh + x, 618]], 3, d.kanduva);
   }
 }
 
 // ------------------------------------------------------------------ lower bodies
+function sideShade(c, col, k, y0, y1) {
+  const gr = c.createLinearGradient(170, 0, 440, 0);
+  gr.addColorStop(0, "rgba(255,255,255,0.10)"); gr.addColorStop(0.45, "rgba(0,0,0,0)");
+  const [r, gg, b] = hex(col).map((v) => Math.round(v * k));
+  gr.addColorStop(1, `rgba(${r},${gg},${b},0.75)`);
+  c.fillStyle = gr; c.fillRect(0, y0, 600, y1 - y0);
+}
 const feet = (g, d, col) => {
   // weight on one leg: the left foot slightly forward and turned out
   ell(g, 300 - 46, 968, 30, 12, d.skin, LW, -0.12); line(g, [[300 - 64, 966], [300 - 28, 962]], 6, col);
@@ -182,7 +223,7 @@ function saree(g, d) {
   const w0 = d.waist + 8, w1 = w0 + 40;
   const build = (c) => { c.moveTo(300 - w0, 410); c.bezierCurveTo(300 - w0 - 34, 600, 300 - w1, 820, 300 - w1 + 4, 952); c.quadraticCurveTo(300, 964, 300 + w1, 950); c.bezierCurveTo(300 + w1 - 6, 820, 300 + w0 + 26, 600, 300 + w0, 410); c.closePath(); };
   shp(g, build, d.saree, { inner: (c) => {
-    c.fillStyle = shade(d.saree, 0.82); c.beginPath(); c.moveTo(300 + 46, 400); c.bezierCurveTo(300 + 60, 600, 300 + 70, 800, 300 + 90, 1000); c.lineTo(600, 1000); c.lineTo(600, 400); c.fill();
+    sideShade(c, d.saree, 0.8, 400, 1000);
     c.fillStyle = tint(d.saree, 0.12); c.beginPath(); c.moveTo(300 - 8, 440); c.lineTo(300 + 46, 440); c.lineTo(300 + 76, 960); c.lineTo(300 - 32, 960); c.fill();
     for (let i = 0; i < 5; i++) { const x0 = 300 - 4 + i * 12, x1 = 300 - 28 + i * 25; curve(c, [x0, 445], [lerp(x0, x1, 0.5) + (i % 2 ? 4 : -4), 700], [x1, 955], 3, shade(d.saree, 0.7)); }
     curve(c, [300 - w0 + 10, 470], [300 - w0 - 6, 650], [300 - w1 + 30, 900], 3, shade(d.saree, 0.78));
@@ -198,7 +239,7 @@ function pants(g, d) {
   for (const s of [-1, 1]) {
     const knee = s < 0 ? -6 : 4;
     shp(g, (c) => { c.moveTo(300 + s * 3, 528); c.lineTo(300 + s * hp, 528); c.bezierCurveTo(300 + s * (hp - 2), 640, 300 + s * (hp - 12) + knee, 760, 300 + s * (hp - 16), 946); c.lineTo(300 + s * 18, 946); c.bezierCurveTo(300 + s * 14, 760, 300 + s * 6 + knee, 640, 300 + s * 3, 528); c.closePath(); }, d.pant,
-      { inner: (c) => { c.fillStyle = shade(d.pant, 0.8); c.fillRect(s > 0 ? 300 + hp - 40 : 300 - 40, 520, 40, 440); curve(c, [300 + s * 40, 700], [300 + s * 48, 760], [300 + s * 36, 820], 3, shade(d.pant, 0.65)); } });
+      { inner: (c) => { sideShade(c, d.pant, 0.8, 520, 960); curve(c, [300 + s * 40, 700], [300 + s * 48, 760], [300 + s * 36, 820], 3, shade(d.pant, 0.65)); } });
   }
   ell(g, 300 - 54, 960, 46, 16, "#2a1d16", LW, -0.08); ell(g, 300 + 56, 955, 44, 15, "#2a1d16", LW, 0.06);
   line(g, [[300 - hp, 532], [300 + hp, 532]], 14, "#4a3426", "butt");
@@ -208,7 +249,7 @@ function pancha(g, d) {
   const hp = d.hip;
   const build = (c) => { c.moveTo(300 - hp, 560); c.bezierCurveTo(300 - hp - 6, 700, 300 - hp - 14, 850, 300 - hp - 12, 952); c.quadraticCurveTo(300, 962, 300 + hp + 10, 950); c.bezierCurveTo(300 + hp + 12, 850, 300 + hp + 6, 700, 300 + hp, 560); c.closePath(); };
   shp(g, build, d.pancha, { inner: (c) => {
-    c.fillStyle = shade(d.pancha, 0.86); c.fillRect(300 + 50, 540, 200, 450);
+    sideShade(c, d.pancha, 0.86, 540, 990);
     curve(c, [300 + 14, 560], [300 + 10, 760], [300 + 32, 952], 4, shade(d.pancha, 0.7));
     curve(c, [300 - 60, 600], [300 - 70, 760], [300 - 54, 930], 3, shade(d.pancha, 0.8));
     c.fillStyle = d.border; c.fillRect(0, 922, 600, 30);
