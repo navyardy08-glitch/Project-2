@@ -56,7 +56,7 @@ ScaledBorderAndShadow: yes
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
 Style: Cap,Inter Black,78,&H00FFFFFF,&H00FFFFFF,&H00201820,&H80000000,0,0,0,0,100,100,1.5,0,1,8,3,2,90,90,470,1
-Style: Thanks,Inter Black,118,&H0070E4FF,&H00FFFFFF,&H00201820,&H90000000,0,0,0,0,100,100,1,0,1,9,5,2,60,60,420,1
+Style: Thanks,Inter Black,104,&H0070E4FF,&H00FFFFFF,&H00201820,&H90000000,0,0,0,0,100,100,1,0,1,9,5,2,60,60,190,1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
