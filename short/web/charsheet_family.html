@@ -1,0 +1,25 @@
+<!doctype html><html><body style="margin:0">
+<canvas id="c" width="2400" height="2200"></canvas>
+<script type="module">
+import { drawHuman } from "./human.js"; import * as F from "./family.js";
+const c = document.getElementById("c"), g = c.getContext("2d");
+const bg = g.createLinearGradient(0, 0, 0, 2200); bg.addColorStop(0, "#fbeed6"); bg.addColorStop(1, "#f1d9b4"); g.fillStyle = bg; g.fillRect(0, 0, 2400, 2200);
+const cast = [["ATTA", F.ATTA, { expr: "angry", armR: "point", armL: "hip" }], ["KODALU", F.KODALU, { expr: "happy", armL: "fold", armR: "fold" }],
+  ["KODUKU", F.KODUKU, { expr: "neutral", armL: "hip" }], ["MAMAGARU", F.MAMAGARU, { expr: "happy" }]];
+cast.forEach(([n, d, o], i) => {
+  g.save(); g.translate(i * 600, 40); g.scale(0.98, 0.98);
+  g.fillStyle = "rgba(60,30,10,0.18)"; g.beginPath(); g.ellipse(300, 975, 170, 22, 0, 0, 7); g.fill();
+  drawHuman(g, d, o); g.restore();
+  g.fillStyle = "#3b2216"; g.font = "bold 44px sans-serif"; g.textAlign = "center"; g.fillText(n, i * 600 + 300, 1060);
+});
+const heads = [[F.ATTA, ["angry", "sly", "shock"]], [F.KODALU, ["sad", "angry", "shock"]], [F.KODUKU, ["shock", "sad", "happy"]], [F.MAMAGARU, ["angry", "sad", "neutral"]]];
+let k = 0;
+heads.forEach(([d, exs]) => exs.forEach((e) => {
+  const x = (k % 6) * 400, y = 1100 + Math.floor(k / 6) * 550;
+  g.save(); g.beginPath(); g.rect(x + 8, y + 8, 384, 534); g.fillStyle = "#fff6e6"; g.fill(); g.lineWidth = 3; g.strokeStyle = "#d9b88a"; g.stroke(); g.clip();
+  g.translate(x + 200, y + 50); g.scale(1.45, 1.45); g.translate(-300, -30); drawHuman(g, d, { expr: e }); g.restore();
+  g.fillStyle = "#3b2216"; g.fillRect(x + 110, y + 492, 180, 46); g.fillStyle = "#ffe9b8"; g.font = "bold 30px sans-serif"; g.textAlign = "center"; g.fillText(e.toUpperCase(), x + 200, y + 526);
+  k++;
+}));
+window.done = true;
+</script></body></html>
