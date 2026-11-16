@@ -1,17 +1,13 @@
 #!/usr/bin/env python3
-"""Music + SFX stems for "The Man Who Moved a Mountain" (all original synthesis).
+"""Music + SFX stems for "The Thief Who Returned Everything" (all original synthesis).
 usage: python3 audio.py <voice> <outdir>   -> outdir/music.wav, outdir/sfx.wav (48 kHz stereo, exact voice length)
-Music: Bhupali-pentatonic folk march in D (dholak-style drum, plucked bass, flute, tanpura-style drone). It stops on
-"You see" (f716), a low drone carries the memory, a timpani roll builds to the breakthrough (f1021), the groove
-returns, and a tender close ends with a low hit + ting on the last word (f1232).
-SFX: hammer-on-rock hits, debris, footsteps, cuckoo on "madman", rock crack / rumble / crash, clay pot break,
-wind, birds, crickets, whooshes. Event times in frames / 30.
 """
 import sys, subprocess
 import numpy as np
 from dsp import SR, ns, tt, rng, lp, hp, bp, colored, smooth_noise, fades, phase, modal, pan, st, place, widen, make_ir, convolve_st, write_wav
 from instruments import m2f, pluck, pad, fife, glock, musicbox, timpani, cymbal, brush, triangle
-from sfx_gen import rattle, clink, whoosh, bird_chirps, crickets, breeze, splash_big
+from sfx_gen import rattle, clink, whoosh, bird_chirps, crickets, breeze, creak, boot, babble, hurrah, applause, hammer_hit, stroll_step
+from instruments import snare, snare_roll
 
 FPS = 30.0
 F = lambda f: f / FPS
@@ -129,114 +125,189 @@ def wings(dur, r, a=1.0):
     return bp(r.standard_normal(n), 250, 2200, 1) * m * np.exp(-t / (dur * 0.6)) * a
 
 
+# ================================================================ extra synths
+def wood_thud(r, a=1.0, f=95.0):
+    t = tt(0.4)
+    y = np.sin(phase(f * (1 + 0.4 * np.exp(-t / 0.015)))) * np.exp(-t / 0.06) * 1.3
+    y += modal(0.4, [(210, 0.7, 0.05), (430, 0.4, 0.03), (780, 0.2, 0.02)], r) + bp(r.standard_normal(len(t)), 500, 4000, 1) * np.exp(-t / 0.006) * 0.7
+    return fades(y * a, 0.0, 0.08)
+
+
+def knock(r, a=1.0):
+    t = tt(0.22)
+    y = modal(0.22, [(310, 1.0, 0.035), (640, 0.6, 0.02), (1150, 0.3, 0.012)], r) + bp(r.standard_normal(len(t)), 800, 5000, 1) * np.exp(-t / 0.003) * 0.6
+    return y * a
+
+
+def ting(r, f=2637.0, a=0.6, d=1.2):
+    return modal(d, [(f, 1.0, 0.35), (f * 2.76, 0.35, 0.15), (f * 5.4, 0.15, 0.06)], r) * a
+
+
+def zip_up(r, d=0.34):
+    t = tt(d)
+    f = 500 * (2 ** (t / d * 2.3))
+    y = np.sin(phase(f)) * np.sin(np.pi * t / d) ** 0.7 * 0.5
+    return y + whoosh(d, r, d * 0.6, 500, 3500, 0.8, 0.08)[: len(t)] * 0.9
+
+
+def kettle_whistle(dur, r):
+    n = ns(dur); t = np.arange(n) / SR
+    f = 1900 + 500 * np.clip(t / 0.5, 0, 1) + 25 * np.sin(2 * np.pi * 6 * t)
+    env = np.clip(t / 0.35, 0, 1) * np.clip((dur - t) / 0.3, 0, 1)
+    y = (np.sin(phase(f)) + 0.3 * np.sin(2 * phase(f))) * env * 0.5 + bp(r.standard_normal(n), 2500, 9000, 1) * env * 0.35
+    return y
+
+
+def bell(r, f=196.0, a=0.8, d=3.0):
+    return modal(d, [(f, 1.0, 1.4), (f * 2.0, 0.6, 1.0), (f * 2.4, 0.45, 0.8), (f * 3.0, 0.3, 0.6), (f * 4.2, 0.2, 0.35), (f * 5.4, 0.12, 0.2)], r) * a
+
+
+def fire(dur, r, a=1.0):
+    n = ns(dur)
+    y = lp(colored(n, r, 0.8), 900, 2) * (0.5 + 0.5 * smooth_noise(n, r, 9)) * 0.5
+    y += rattle(dur, r, 22, None, heavy=False)[:n] * 0.5
+    return fades(y * a, 0.2, 0.3)
+
+
+def puff_snd(r, a=0.5):
+    t = tt(0.3)
+    return lp(r.standard_normal(len(t)), 1400, 2) * np.sin(np.pi * np.clip(t / 0.3, 0, 1)) ** 0.6 * np.exp(-t / 0.09) * a
+
+
+def tile_step(r, a=0.4):
+    t = tt(0.12)
+    return (modal(0.12, [(r.uniform(900, 1400), 0.7, 0.015), (r.uniform(2100, 3000), 0.4, 0.008)], r) + lp(r.standard_normal(len(t)), 600, 2) * np.exp(-t / 0.015)) * a
+
+
+def soft_step(r, a=0.4):
+    t = tt(0.2)
+    nz = r.standard_normal(len(t))
+    return (lp(nz, 450, 2) * np.exp(-t / 0.022) * 1.2 + bp(nz, 900, 3500, 1) * np.exp(-t / 0.03) * 0.15) * a
+
+
 # ================================================================ music
 def music(N):
     r = rng(11)
     out = np.zeros((2, N))
-    beat = 60 / 96.0
-    e8 = beat / 2
-    D2, A1, A2, D3, B1, G1 = m2f(38), m2f(33), m2f(45), m2f(50), m2f(35), m2f(31)
-    STOP = F(716)
-    BREAK = F(1021)
-
-    def drone(t0, t1, vel=0.2):
-        t = t0
-        pat = [A2, D3, D3, m2f(38)]
-        i = 0
-        while t < t1:
-            place(out, pan(pluck(pat[i % 4], 0.5, r, dur=2.4, bright=0.75, pos=0.08), [-0.35, 0.2, 0.35, -0.1][i % 4]), t, vel)
-            t += beat * 1.5
-            i += 1
-
-    def groove(t0, t1, intensity=1.0, shk=False):
-        pat = [("LH", 1.0), ("L", 0.6), ("H", 0.8), ("S", 0.5), ("H", 0.75), ("S", 0.45), ("LH", 0.9), ("H", 0.7)]
-        t, i = t0, 0
-        while t < t1 - 0.01:
-            k, v = pat[i % 8]
-            v *= intensity * r.uniform(0.9, 1.05)
-            if "L" in k:
-                place(out, pan(dholak("L", v, r), -0.1), t, 0.9)
-            if "H" in k:
-                place(out, pan(dholak("H", v, r), 0.25), t, 0.55)
-            if k == "S":
-                place(out, pan(dholak("S", v, r), 0.3), t, 0.5)
-            if shk:
-                for s in range(2):
-                    place(out, pan(shaker(0.18 * (1.3 if s == 0 else 0.8), r), 0.5), t + s * e8 / 2, 1.0)
-            if i % 4 == 0:  # bass on beats 1 and 3
-                bar = int(i // 8)
-                root = [D2, D2, A1, D2, B1, A1, G1, A1][bar % 8] if i % 8 == 0 else [A1, D2, D2, A1, D2, D2, D2, D2][bar % 8]
-                place(out, pan(pluck(root, 0.75, r, dur=0.9, bright=0.35, pos=0.22), 0.0), t, 0.75 * intensity)
-            t += e8
-            i += 1
-
-    def flute(t0, notes, vel=0.55, octave=0, p=0.15):
-        for (b, d, m) in notes:
-            ts = t0 + b * beat
-            if ts >= STOP and ts < BREAK:
-                continue
-            dur = d * beat * 0.95
-            if ts < STOP and ts + dur > STOP:
-                dur = STOP - ts - 0.02
-            place(out, pan(fife(m2f(m + 12 * octave), max(0.05, dur), vel, r, rel=0.06), p), ts, 1.0)
-
-    A = [(0, 1, 69), (1, 0.5, 71), (1.5, 0.5, 74), (2, 1.5, 76), (3.5, 0.5, 74), (4, 1, 71), (5, 1, 69), (6, 2, 66)]
-    B = [(0, 0.5, 74), (0.5, 0.5, 76), (1, 1, 78), (2, 1, 81), (3, 1, 78), (4, 0.5, 76), (4.5, 0.5, 74), (5, 1, 76), (6, 2, 74)]
-    # --- hook: drone + building drum
-    drone(0.0, STOP)
-    for k, tm in enumerate(np.arange(1.6, 3.5, e8 / 2)):
-        place(out, pan(dholak("H" if k % 2 else "S", 0.25 + 0.5 * (tm - 1.6) / 1.9, r), 0.2), tm, 0.5)
-    T0 = F(106)
-    groove(T0, STOP, 1.0)
-    bar = 4 * beat
-    flute(T0 + bar, A)
-    flute(T0 + 3 * bar, [n for n in B if not (13.65 < T0 + 3 * bar + n[0] * beat < 14.9)])
-    # giggle on "laughed" (f415 = 13.83 s): fast flute trill
-    for j in range(8):
-        place(out, pan(fife(m2f(78 if j % 2 == 0 else 81), 0.07, 0.4, r, rel=0.03), 0.2), F(413) + j * 0.085, 1.0)
-    # timelapse: shaker on, flute an octave up
-    groove(F(476), STOP, 1.1, shk=True)
-    flute(T0 + 5 * bar, A, 0.5, octave=1)
-    flute(T0 + 7 * bar, B, 0.5)
-    # stop on "You see": brushed cut
-    place(out, pan(brush(0.5, r, 0.4, swish=True), 0.0), STOP - 0.18, 0.8)
-    # --- memory: low drone pad + sparse music box
-    place(out, pad([m2f(38), m2f(45), m2f(50)], BREAK - STOP - 1.0, 0.32, r, att=1.0, rel=1.2, warm=480), STOP, 1.0)
-    for tm, m in [(24.75, 74), (25.55, 71), (26.35, 69), (27.15, 66)]:
-        place(out, pan(musicbox(m2f(m), 0.35, r, 1.6), 0.25), tm, 0.8)
-    for j, m in enumerate([86, 83, 81, 78, 76, 74, 71, 69]):
-        place(out, pan(musicbox(m2f(m), 0.22, r, 1.2), -0.2 + 0.05 * j), F(853) + j * (F(903) - F(853)) / 8, 0.7)
-    # build to the breakthrough: timpani roll, accelerating, crescendo
-    tm, k = F(965), 0
-    while tm < BREAK - 0.05:
-        u = (tm - F(965)) / (BREAK - F(965))
-        place(out, pan(timpani(m2f(38), 0.08 + 0.55 * u ** 1.6, r, 0.8), -0.1 if k % 2 else 0.1), tm, 0.8)
-        tm += 0.32 - 0.25 * u
-        k += 1
-    place(out, pad([m2f(45), m2f(52), m2f(57)], BREAK - F(985), 0.25, r, att=BREAK - F(985) - 0.1, rel=0.2, warm=900), F(985), 1.0)
-    # --- breakthrough: big hit + bright chord swell, groove returns
-    place(out, pan(timpani(m2f(38), 1.0, r, 2.4), 0.0), BREAK, 1.2)
-    place(out, cymbal(0.6, r, 2.6), BREAK, 0.5)
-    place(out, pad([m2f(50), m2f(54), m2f(57), m2f(59), m2f(62)], 3.2, 0.5, r, att=0.08, rel=1.2, warm=2200), BREAK, 1.0)
-    G2 = F(1040)
-    groove(G2, F(1140), 0.9, shk=True)
-    flute(G2 + 2 * beat, B, 0.55, octave=0, p=0.1)
-    for j, m in enumerate([74, 76, 78, 81, 83, 86, 88]):  # green route draws: rising glock
-        place(out, pan(glock(m2f(m), 0.45, r, 1.4), 0.3), F(1094) + j * (F(1118) - F(1094)) / 7, 0.6)
-    # --- payoff: tender close
     END = N / SR
-    place(out, pad([m2f(50), m2f(57), m2f(62), m2f(64)], END - F(1140), 0.33, r, att=0.9, rel=0.4, warm=1100), F(1140), 1.0)
-    drone(F(1140), END)
-    for (tm, d, m) in [(F(1146), 0.9, 69), (F(1176), 0.5, 71), (F(1192), 0.45, 74), (F(1205), 0.7, 76), (F(1228), 0.12, 74), (F(1232), 0.7, 74)]:
-        place(out, pan(fife(m2f(m), d, 0.42, r, rel=0.1), 0.12), tm, 1.0)
-    place(out, pan(timpani(m2f(38), 0.75, r, 1.6), 0.0), F(1231), 1.0)
-    place(out, pan(glock(m2f(86), 0.6, r, 1.6), 0.25), F(1232), 0.8)
-    place(out, pan(triangle(0.35, r, 1.4), 0.3), F(1232), 0.5)
-    # room
-    ir = make_ir(1.3, 5, hf=1.4)
-    wet = convolve_st(out, ir)
-    out = out + 0.16 * wet
-    return fades(out, 0.0, 0.25)
+    D = 38  # D2
+
+    def bass(t, m, v=0.7, d=0.7):
+        place(out, pan(pluck(m2f(m), v, r, dur=d, bright=0.3, pos=0.22), 0.0), t, 0.8)
+
+    def pz(t, m, v=0.5, p=0.2, d=0.5):
+        place(out, pan(pluck(m2f(m), v, r, dur=d, bright=0.7, pos=0.12), p), t, 0.7)
+
+    def tiptoe(t0, t1, beat, mel=True, drums=False, v=1.0, root=D):
+        """sneaky two-bar vamp: bass on 1 and 3, off-beat plucks, optional brush"""
+        bl = [0, 0, -2, -5, 0, 0, 3, -5]
+        tune = [(0.5, 62), (1.5, 65), (2.5, 69), (3.5, 68), (4.5, 62), (5.5, 65), (6.5, 70), (7, 69), (7.5, 65)]
+        t, i = t0, 0
+        while t < t1 - 0.02:
+            bar = (i // 4) % 8
+            if i % 2 == 0:
+                bass(t, root + bl[bar] + (7 if i % 4 == 2 else 0), 0.65 * v)
+            if drums:
+                place(out, pan(brush(0.35 * v, r, 0.12), 0.3), t + beat / 2, 0.8)
+                if i % 4 in (1, 3):
+                    place(out, pan(snare(0.3 * v, r, 0.2, snappy=0.6), -0.2), t, 0.5)
+            t += beat
+            i += 1
+        if mel:
+            t = t0
+            while t < t1 - 0.02:
+                for (b, m) in tune:
+                    if t + b * beat < t1 - 0.05:
+                        pz(t + b * beat, m + (root - D), 0.42 * v, 0.25 if int(b * 2) % 4 else -0.2)
+                t += 8 * beat
+
+    def box_tune(t0, notes, beat, v=0.4, tr=0):
+        for (b, m) in notes:
+            place(out, pan(musicbox(m2f(m + tr), v, r, 1.5), 0.2 * np.sin(b)), t0 + b * beat, 0.9)
+
+    # --- hook (0 - 5.2 s): hit, then the tiptoe vamp
+    place(out, pan(timpani(m2f(38), 0.9, r, 1.8), 0.0), 0.0, 1.0)
+    place(out, cymbal(0.35, r, 1.6), 0.0, 0.35)
+    bt = 60 / 108.0
+    tiptoe(0.55, F(155), bt, mel=True)
+    # --- the town (5.2 - 9.9): warm major pad + fife tune
+    place(out, pad([m2f(50), m2f(57), m2f(62), m2f(66)], F(298) - F(155), 0.3, r, att=0.5, rel=0.6, warm=1400), F(155), 1.0)
+    for (b, d, m) in [(0, 1, 74), (1, 0.5, 78), (1.5, 0.5, 81), (2, 1.5, 83), (3.5, 0.5, 81), (4, 1, 78), (5, 1, 76), (6, 1.5, 74)]:
+        place(out, pan(fife(m2f(m), d * bt * 0.95, 0.42, r, rel=0.06), 0.12), F(160) + b * bt, 1.0)
+    tk = F(160)
+    while tk < F(296):
+        bass(tk, 38 if int((tk - F(160)) / bt) % 4 < 2 else 33, 0.5)
+        tk += 2 * bt
+    # --- nights of missing things (9.9 - 25.3): tiptoe, glock falls on each theft
+    tiptoe(F(298), F(760), bt, mel=True, drums=False)
+    for f0 in (392, 420, 450):
+        for j, m in enumerate([86, 81, 77, 74]):
+            place(out, pan(glock(m2f(m), 0.4, r, 0.9), 0.3), F(f0) + j * 0.06, 0.6)
+    # --- rooftops (25.3 - 29.7): faster, with brushes
+    bf = 60 / 150.0
+    tiptoe(F(760), F(890), bf, mel=True, drums=True, v=1.1, root=D + 2)
+    place(out, pan(brush(0.5, r, 0.4, swish=True), 0.0), F(888), 0.7)
+    # --- things come back (29.7 - 42.2): music-box major
+    place(out, pad([m2f(50), m2f(57), m2f(62), m2f(66)], F(1268) - F(896), 0.26, r, att=1.2, rel=1.0, warm=1200), F(896), 1.0)
+    bm = 60 / 96.0
+    tune2 = [(0, 74), (1, 78), (2, 81), (3, 78), (4, 83), (5, 81), (6, 78), (7, 74), (8, 76), (9, 79), (10, 83), (11, 79), (12, 81), (13, 78), (14, 76), (15, 74)]
+    box_tune(F(988), tune2, bm, 0.34)
+    tk, i = F(900), 0
+    while tk < F(1262):
+        bass(tk, [38, 45, 43, 45][i % 4], 0.42, 1.0)
+        tk += 2 * bm
+        i += 1
+    # the music box itself plays (f1170 - 1256)
+    box_tune(F(1170), [(0, 86), (0.5, 90), (1, 93), (1.5, 90), (2, 95), (2.5, 93), (3, 90), (3.5, 86), (4, 88), (4.5, 91), (5, 95), (6, 93), (7, 90), (8, 86)], bm * 0.75, 0.42)
+    # --- stakeout (42.2 - 53.5): heartbeat + thin tension pad, sparse plucks
+    place(out, pad([m2f(38), m2f(45), m2f(53)], F(1606) - F(1272), 0.26, r, att=1.5, rel=0.3, warm=700), F(1272), 1.0)
+    tk, i = F(1276), 0
+    while tk < F(1600):
+        place(out, pan(timpani(m2f(38), 0.22 + 0.18 * (tk - F(1276)) / 11, r, 0.6), 0.0), tk, 0.8)
+        place(out, pan(timpani(m2f(38), 0.14, r, 0.5), 0.0), tk + 0.24, 0.7)
+        if i % 2 == 1:
+            pz(tk + 0.6, [62, 65, 68, 65][(i // 2) % 4], 0.3, 0.3)
+        tk += 1.1
+        i += 1
+    place(out, pan(bell(r, 146.8, 0.5, 3.0), 0.0), F(1432), 0.7)
+    # --- the town comes running (53.5 - 56.3): snare roll + timpani build
+    place(out, snare_roll(F(1606), F(1690), 0.15, 0.75, r), 0.0, 0.6)
+    tk = F(1606)
+    while tk < F(1686):
+        u = (tk - F(1606)) / (F(1686) - F(1606))
+        place(out, pan(timpani(m2f(38 + (2 if u > 0.6 else 0)), 0.3 + 0.5 * u, r, 0.7), 0.1), tk, 0.9)
+        tk += 0.36 - 0.14 * u
+    place(out, cymbal(0.5, r, 1.2), F(1688), 0.4)
+    # --- "You see" (56.5): music stops; low warm pad + lone music box
+    STOP = F(1692)
+    place(out, pad([m2f(38), m2f(45), m2f(50), m2f(57)], F(2112) - STOP, 0.3, r, att=1.4, rel=1.5, warm=600), STOP + 0.3, 1.0)
+    for (fr, m) in [(1716, 74), (1744, 69), (1790, 77), (1816, 74), (1856, 72), (1892, 69), (1920, 74), (1940, 77), (1966, 81), (2002, 74), (2040, 69), (2066, 65), (2090, 62)]:
+        place(out, pan(musicbox(m2f(m), 0.36, r, 1.8), 0.2), F(fr), 0.85)
+    # --- trial + workshop (70.4 - 82): gentle major groove
+    place(out, pad([m2f(50), m2f(57), m2f(62), m2f(66)], F(2462) - F(2112), 0.28, r, att=0.8, rel=0.5, warm=1500), F(2112), 1.0)
+    tk, i = F(2116), 0
+    while tk < F(2456):
+        bass(tk, [38, 45, 43, 45, 38, 42, 43, 45][i % 8], 0.55, 0.9)
+        if tk > F(2204):
+            place(out, pan(brush(0.3, r, 0.12), 0.3), tk + bm / 2, 0.8)
+            pz(tk + bm / 2, [78, 81, 83, 81, 78, 74, 76, 78][i % 8], 0.4, -0.2)
+        tk += bm
+        i += 1
+    place(out, pan(timpani(m2f(38), 0.8, r, 1.6), 0.0), F(2200), 1.0)
+    place(out, cymbal(0.4, r, 1.8), F(2200), 0.4)
+    for (b, d, m) in [(0, 1, 74), (1, 0.5, 78), (1.5, 0.5, 81), (2, 1.5, 83), (3.5, 0.5, 81), (4, 1, 86), (5, 1, 83), (6, 2, 81), (8, 1, 78), (9, 1, 81), (10, 2, 74)]:
+        place(out, pan(fife(m2f(m), d * bm * 0.95, 0.4, r, rel=0.07), 0.12), F(2232) + b * bm, 1.0)
+    # --- twist (82.1): music stops, low drone; hit + ting on the last word
+    place(out, pan(brush(0.5, r, 0.4, swish=True), 0.0), F(2458), 0.7)
+    place(out, pad([m2f(38), m2f(45)], END - F(2462), 0.3, r, att=0.4, rel=0.5, warm=420), F(2462), 1.0)
+    LAST = F(2508)
+    place(out, pan(timpani(m2f(38), 0.9, r, 1.8), 0.0), LAST, 1.1)
+    place(out, pan(glock(m2f(86), 0.6, r, 1.6), 0.25), LAST + 0.02, 0.8)
+    place(out, pan(triangle(0.35, r, 1.4), 0.3), LAST + 0.02, 0.5)
+    place(out, pan(musicbox(m2f(74), 0.5, r, 1.6), -0.2), LAST + 0.12, 0.8)
+    ir = make_ir(1.2, 5, hf=1.4)
+    out = out + 0.15 * convolve_st(out, ir)
+    return fades(out, 0.0, 0.2)
 
 
 # ================================================================ sfx
@@ -244,69 +315,91 @@ def sfx(N):
     r = rng(23)
     out = np.zeros((2, N))
     END = N / SR
-    # ambience beds
-    amb = breeze(END, r, 0.35, 0.15, 800)
-    lvl = np.interp(np.arange(N) / SR, [0, F(712), F(716), F(815), F(830), F(905), F(912), F(958), F(965), END], [1, 1, 0.6, 0.6, 1.6, 1.6, 0.5, 0.5, 1, 1])
-    out += amb * lvl[None, :] * 0.7
-    place(out, widen(bird_chirps(F(268) - F(106), r, 0.9), r), F(106), 0.10)
-    place(out, widen(bird_chirps(F(712) - F(600), r, 0.7, "blackbird"), r), F(600), 0.07)
-    place(out, widen(bird_chirps(F(1136) - F(1048), r, 0.8), r), F(1048), 0.08)
-    place(out, widen(crickets(F(965) - F(912), r, 3), r), F(912), 0.035)
+    P = lambda x, f, g=0.5, p=0.0: place(out, pan(x, p), F(f), g)
+    # ambience: quiet air everywhere, crickets at night outdoors, birds by day outdoors
+    out += breeze(END, r, 0.3, 0.12, 800) * 0.4
+    for a, b in [(298, 378), (1265, 1312), (1846, 1886), (1934, 1962)]:
+        place(out, widen(crickets(F(b) - F(a), r, 3), r), F(a), 0.035)
+    for a, b in [(155, 298), (568, 680), (890, 1036), (1966, 2162), (2224, 2521)]:
+        place(out, widen(bird_chirps(F(b) - F(a), r, 0.7), r), F(a), 0.07)
+    for a, b in [(0, 155), (1606, 1783)]:
+        place(out, widen(fire(F(b) - F(a), r, 1.0), r), F(a), 0.08)
     # hook
-    for fi, big in [(35, 1.0), (72, 1.25)]:
-        place(out, pan(whoosh(0.32, r, 0.26, 300, 1800, 0.8, 0.06), 0.1), F(fi) - 0.27, 0.35)
-        place(out, pan(rock_hit(r, big), 0.15), F(fi), 0.5)
-    # walk to the hill + challenge
-    place(out, pan(whoosh(1.4, r, 0.9, 200, 1500, 0.9, 0.4, 0.05), 0.0), F(100), 0.22)
-    for fs in np.arange(112, 236, 10.4):
-        place(out, pan(step_soft(r, r.uniform(0.35, 0.5)), -0.05 if int(fs) % 2 else 0.05), F(fs), 0.6)
-    place(out, pan(whoosh(0.35, r, 0.2, 400, 2400), 0.1), F(246), 0.25)
-    place(out, pan(tap(r, 1500, 0.4), 0.1), F(255), 0.5)
-    # climb + hits
-    for fs in np.arange(270, 334, 8.8):
-        place(out, pan(step_soft(r, r.uniform(0.35, 0.5)), 0.0), F(fs), 0.6)
-    place(out, pan(whoosh(0.32, r, 0.26, 300, 1800, 0.8, 0.06), 0.1), F(357) - 0.27, 0.35)
-    place(out, pan(rock_hit(r, 1.0), 0.15), F(357), 0.5)
-    place(out, pan(rock_hit(r, 0.55), 0.15), F(372), 0.45)
-    # village: distant hammering, cuckoo on "madman"
-    for fi in range(404, 476, 20):
-        place(out, pan(tap(r, r.uniform(2200, 2900), 0.25), -0.2), F(fi), 0.45)
-    place(out, pan(cuckoo(r, 0.55), 0.35), F(452), 0.55)
-    # timelapse: rapid taps, whooshes on the year flashes
-    for fi in range(479, 600, 9):
-        place(out, pan(tap(r, r.uniform(2000, 3200), 0.4), -0.1), F(fi), 0.55)
-    for fc in (526, 575):
-        place(out, pan(whoosh(0.7, r, 0.55, 500, 4000, 0.7, 0.12, 0.25), 0.0), F(fc) - 0.55, 0.4)
-    # losing
-    for fi in range(600, 684, 16):
-        place(out, pan(tap(r, r.uniform(2300, 2800), 0.18), -0.15), F(fi), 0.4)
-    place(out, pan(crack_sharp(r, 0.9), 0.3), F(680), 0.4)
-    place(out, pan(rumble(F(700) - F(684) + 0.2, r, 1.0), 0.3), F(684), 0.6)
-    place(out, pan(crash_big(r, 1.0), 0.25), F(700), 0.42)
-    place(out, pan(crash_big(r, 0.4, 1.2), 0.25), F(704), 0.3)
-    # memory
-    place(out, pan(whoosh(0.9, r, 0.75, 150, 900, 0.9, 0.3, 0.02), 0.0), F(706), 0.25)
-    for fs in np.arange(716, 776, 11):
-        place(out, pan(step_soft(r, 0.28), 0.05), F(fs), 0.6)
-    place(out, pan(bp(r.standard_normal(ns(0.3)), 500, 4000, 1) * np.exp(-tt(0.3) / 0.09) * 0.6, -0.05), F(776), 0.5)
-    place(out, pan(whoosh(0.5, r, 0.3, 300, 1400, 0.8, 0.1), 0.1), F(778), 0.15)
-    place(out, pan(clay_break(r, 0.9), 0.1), F(792), 0.45)
-    sp = splash_big(r)
-    place(out, pan(fades(sp[: ns(0.8)], 0.0, 0.2) * 0.25, 0.1), F(793), 0.4)
-    # aerial: more air
-    place(out, pan(whoosh(1.3, r, 0.8, 200, 1600, 1.0, 0.5, 0.1), 0.0), F(815), 0.22)
-    # breakthrough
-    place(out, pan(whoosh(0.4, r, 0.33, 250, 1600, 0.8, 0.06), 0.1), F(1021) - 0.34, 0.45)
-    place(out, pan(rock_hit(r, 1.3), 0.0), F(1021), 0.45)
-    place(out, pan(crash_big(r, 1.2, 2.6), 0.0), F(1021) + 0.02, 0.45)
-    place(out, pan(whoosh(1.4, r, 0.15, 300, 2600, 1.0, 0.9, 0.3), 0.0), F(1022), 0.35)
-    # route: crane whoosh
-    place(out, pan(whoosh(1.1, r, 0.6, 250, 1800, 0.9, 0.3), 0.0), F(1078), 0.25)
-    for fs in np.arange(1050, 1080, 9):
-        place(out, pan(step_soft(r, 0.2), 0.1), F(fs), 0.5)
-    # payoff: pull-back air + wings out of the gap
-    place(out, pan(whoosh(1.6, r, 1.0, 200, 1300, 1.0, 0.5, 0.05), 0.0), F(1199), 0.2)
-    place(out, widen(wings(1.5, r, 0.6), r), F(1214), 0.25)
+    P(whoosh(0.5, r, 0.1, 300, 2400, 0.9, 0.3), 0, 0.4)
+    place(out, widen(babble(1.4, r, 190, 1.0, rate=5), r), F(52), 0.12)
+    place(out, widen(babble(1.2, r, 130, 1.1, rate=5), r), F(56), 0.12)
+    for fs in (102, 110, 118): P(soft_step(r, 0.3), fs, 0.5)
+    P(wood_thud(r, 0.6, 120), 127, 0.5, -0.1)
+    # town
+    P(whoosh(1.6, r, 1.0, 200, 1500, 1.0, 0.5, 0.05), 150, 0.2)
+    for fs in np.arange(236, 296, 9.5): P(stroll_step(r, 0.5) * 0.4, fs, 0.4, r.uniform(-0.4, 0.4))
+    # sneak across the street
+    for fs in np.arange(302, 376, 12.5): P(soft_step(r, 0.35), fs, 0.5, (fs - 340) / 80)
+    # thefts
+    for f0, p in [(392, -0.1), (420, 0.1), (450, 0.0)]:
+        P(zip_up(r), f0 - 1, 0.4, p); P(puff_snd(r, 0.5), f0 + 2, 0.5, p)
+    P(ting(r, 3136, 0.3, 0.6), 463, 0.4)
+    # the mayor sits on nothing
+    for fs in (496, 503, 510): P(soft_step(r, 0.3), fs, 0.5)
+    P(whoosh(0.3, r, 0.25, 250, 1500, 0.8, 0.05), 519, 0.35)
+    P(wood_thud(r, 1.2, 70), 527, 0.6); P(puff_snd(r, 0.7), 528, 0.5)
+    # door slam + bolts, nails
+    P(whoosh(0.25, r, 0.2, 300, 1800, 0.8, 0.05), 591, 0.35)
+    P(wood_thud(r, 1.3, 85), 597, 0.6, -0.1)
+    for fb in (608, 616): P(clink(r, f0=1900, dur=0.14, bright=0.8) * 0.8, fb, 0.5, -0.1); P(knock(r, 0.4), fb, 0.5, -0.1)
+    P(wood_thud(r, 0.7, 150), 641, 0.45); P(wood_thud(r, 0.7, 140), 655, 0.45)
+    for fh in (641, 655, 664, 671): P(hammer_hit(r, 0.8), fh, 0.42, 0.15)
+    # cupboard
+    P(creak(0.85, r, 90, 150), 688, 0.3, 0.1)
+    for k in range(3):
+        d = 0.9; t = tt(d)
+        sn = bp(r.standard_normal(len(t)), 180, 900, 1) * np.sin(np.pi * t / d) ** 2 * (1 + 0.6 * np.sin(2 * np.pi * 26 * t)) * 0.5
+        P(sn, 700 + k * 22, 0.3, 0.1)
+    # rooftops
+    for fs in np.arange(762, 888, 4.3): P(tile_step(r, r.uniform(0.25, 0.4)), fs, 0.45, r.uniform(-0.5, 0.5))
+    P(whoosh(1.0, r, 0.6, 300, 2400, 1.0, 0.3, 0.2), 756, 0.25)
+    for fc in (838, 858): P(whoosh(0.6, r, 0.45, 500, 4000, 0.7, 0.12, 0.25), fc - 14, 0.35)
+    # strange... everything came back
+    P(ting(r, 2093, 0.3, 0.8), 953, 0.4)
+    for i, f0 in enumerate((990, 1000, 1010)): P(ting(r, [2637, 3136, 3520][i], 0.45, 1.0), f0 + 1, 0.45, -0.3 + 0.3 * i); P(puff_snd(r, 0.3), f0, 0.4)
+    for i, fs in enumerate(np.arange(1040, 1090, 15)): P(knock(r, 0.5) * 0.6 + ting(r, 1800 if i % 2 else 1500, 0.12, 0.15), fs, 0.5, -0.1)
+    P(kettle_whistle(F(1150) - F(1104), r), 1104, 0.22, 0.1)
+    P(clink(r, f0=2400, dur=0.12), 1164, 0.4)
+    for fs in np.arange(1212, 1262, 7.5): P(soft_step(r, 0.3), fs, 0.45)
+    # stakeout
+    P(whoosh(1.2, r, 0.8, 200, 1400, 1.0, 0.4, 0.05), 1266, 0.2)
+    for fs in np.arange(1316, 1364, 12): P(soft_step(r, 0.3), fs, 0.5, 0.2)
+    P(creak(0.3, r, 140, 180), 1368, 0.2, -0.2)
+    for i, fw in enumerate((1458, 1470, 1482, 1494)): P(creak(0.36, r, 120 + 25 * i, 200 + 30 * i), fw, 0.3, 0.0)
+    P(wood_thud(r, 0.7, 110), 1546, 0.5); P(puff_snd(r, 0.4), 1547, 0.4)
+    for fs in np.arange(1562, 1604, 7.5): P(soft_step(r, 0.3), fs, 0.45)
+    # the whole town came running
+    for fs in np.arange(1608, 1688, 2.2): P(boot(r, 0.6) * r.uniform(0.3, 0.6), fs, 0.35, r.uniform(-0.7, 0.7))
+    for k in range(5): place(out, pan(babble(F(1688) - F(1612), r, [120, 200, 150, 240, 170][k], 1.0 + 0.05 * k, rate=5.5), -0.6 + 0.3 * k), F(1612), 0.07)
+    # candlelight mending
+    for fs in np.arange(1848, 1884, 12.5): P(soft_step(r, 0.3), fs, 0.45)
+    for fh in (1895, 1907, 1919, 1931): P(knock(r, 0.6), fh, 0.45, -0.1)
+    P(ting(r, 3136, 0.4, 1.0), 1917, 0.4)
+    P(wood_thud(r, 0.5, 130), 1959, 0.45, -0.2); P(ting(r, 2637, 0.4, 1.0), 1965, 0.4)
+    for fs in np.arange(1964, 1990, 9): P(soft_step(r, 0.3), fs, 0.45, 0.3)
+    # nobody opened the door
+    for fk in (2002, 2008, 2014, 2028, 2034): P(knock(r, 0.9), fk, 0.5, -0.15)
+    place(out, breeze(F(2108) - F(2050), r, 1.0, 0.4, 700), F(2050), 0.5)
+    # trial, verdict, cheers
+    for k in range(4): place(out, pan(babble(F(2196) - F(2110), r, [130, 210, 160, 230][k], 1.0, rate=4.5, active=0.6), -0.6 + 0.4 * k), F(2110), 0.05)
+    P(hammer_hit(r, 1.1), 2200, 0.5); P(wood_thud(r, 1.0, 90), 2200, 0.5)
+    for k in range(9): P(hurrah(r, [140, 230, 180, 300, 160, 250, 200, 320, 150][k], 1.0, kid=k in (3, 7)), 2206 + k * 5 + r.integers(0, 4), 0.16, -0.8 + 0.2 * k)
+    n = ns(F(2300) - F(2206)); env = np.interp(np.arange(n) / SR, [0, 0.4, 1.6, n / SR], [0, 1, 0.7, 0])
+    place(out, applause(n / SR, r, 22, env), F(2206), 0.1)
+    P(whoosh(1.4, r, 0.9, 200, 1500, 1.0, 0.4, 0.05), 2226, 0.2)
+    for fsp, fq in [(2333, 2637), (2341, 3136), (2385, 3520)]: P(ting(r, fq, 0.4, 1.0), fsp, 0.4, 0.2)
+    for fh in np.arange(2370, 2412, 14): P(knock(r, 0.6), fh, 0.4, -0.1)
+    for fs in np.arange(2414, 2456, 9.5): P(stroll_step(r, 0.5) * 0.4, fs, 0.4, 0.3)
+    # the step
+    for fs in np.arange(2463, 2486, 4.5): P(soft_step(r, 0.35), fs, 0.5, 0.3)
+    P(wood_thud(r, 0.5, 160), 2488, 0.45, 0.2)
+    P(creak(0.4, r, 110, 160), 2489, 0.25, -0.1)
+    P(ting(r, 3520, 0.5, 1.4), 2505, 0.45, 0.2)
     return fades(out, 0.01, 0.25)
 
 
